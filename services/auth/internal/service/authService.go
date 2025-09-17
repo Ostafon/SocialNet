@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"os"
 	"regexp"
 	utils2 "socialnet/pkg/utils"
 	pb "socialnet/services/auth/gen"
@@ -163,6 +164,7 @@ func (s *AuthService) ForgotPassword(req *pb.ForgotPasswordRequest) error {
 		return status.Error(codes.NotFound, "user not found")
 	}
 
+	to := os.Getenv("TO_USER")
 	token, err := utils.GenerateUUID()
 	resetLink := "http://localhost:8080/reset-password?token=" + token
 	if err != nil {
@@ -177,7 +179,7 @@ func (s *AuthService) ForgotPassword(req *pb.ForgotPasswordRequest) error {
 	body := "<p>Для сброса пароля перейдите по ссылке:</p>" +
 		"<a href='" + resetLink + "'>" + resetLink + "</a>"
 
-	if err = utils.SendEmail("sashaostafi60@gmail.com", subject, body); err != nil {
+	if err = utils.SendEmail(to, subject, body); err != nil {
 		return status.Error(codes.Internal, "failed to send email")
 	}
 
