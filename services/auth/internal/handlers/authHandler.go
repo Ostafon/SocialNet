@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"socialnet/pkg/utils"
 	pb "socialnet/services/auth/gen"
 	"socialnet/services/auth/internal/service"
-	"socialnet/services/auth/internal/utils"
 	"time"
 )
 
@@ -21,6 +21,7 @@ func NewAuthHandler(service *service.AuthService) *AuthHandler {
 }
 
 func (h *AuthHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
+	fmt.Println("Register")
 	access, refresh, err := h.authService.Register(req)
 	if err != nil {
 		return nil, err
@@ -29,6 +30,7 @@ func (h *AuthHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*p
 }
 
 func (h *AuthHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+	fmt.Println("Login")
 	access, refresh, err := h.authService.Login(req)
 	if err != nil {
 		return nil, err
@@ -65,6 +67,7 @@ func (h *AuthHandler) ForgotPassword(ctx context.Context, req *pb.ForgotPassword
 
 func (h *AuthHandler) ResetPassword(ctx context.Context, req *pb.ResetPasswordRequest) (*pb.Confirmation, error) {
 	err := h.authService.ResetPassword(req)
+	fmt.Println("Reset")
 	if err != nil {
 		return nil, err
 	}
@@ -72,18 +75,24 @@ func (h *AuthHandler) ResetPassword(ctx context.Context, req *pb.ResetPasswordRe
 }
 
 func (h *AuthHandler) GetProfile(ctx context.Context, req *pb.ProfileRequest) (*pb.ProfileResponse, error) {
-	userID, ok := ctx.Value("user_id").(string)
-	if !ok {
-		return nil, status.Error(codes.Unauthenticated, "unauthorized")
+	userId := ctx.Value("user_id").(string)
+	if userId == "" {
+		return nil, status.Error(codes.Internal, "user id is null")
 	}
-	id, err := utils.StringToUint(userID)
+	fmt.Println("GetProfile userId:", userId)
+
+	id, err := utils.StringToUint(userId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user id")
+	}
+
 	user, err := h.authService.GetProfile(id)
 	if err != nil {
 		return nil, err
 	}
 
 	return &pb.ProfileResponse{
-		Id:        fmt.Sprint(user.ID),
+		Id:        userId,
 		Email:     user.Email,
 		Username:  user.Username,
 		CreatedAt: user.CreatedAt.Format(time.RFC3339),

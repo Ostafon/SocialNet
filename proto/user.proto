@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package user;
+option go_package = "socialnet/services/user/gen;userpb";
+import "google/api/annotations.proto";
+import "auth.proto";
+
+service UserService {
+  // GetUser → GET /api/v1/users/{id}
+  rpc GetUser(GetUserRequest) returns (User) {
+    option (google.api.http) = { get: "/api/v1/users/{id}" };
+  }
+
+  // UpdateUser → PATCH /api/v1/users/{id}
+  rpc UpdateUser(UpdateUserRequest) returns (auth.Confirmation) {
+    option (google.api.http) = { patch: "/api/v1/users/{id}" body: "*" };
+  }
+
+  // ListUsers → GET /api/v1/users
+  rpc ListUsers(EmptyRequest) returns (Users) {
+    option (google.api.http) = { get: "/api/v1/users" };
+  }
+
+  // FollowUser → POST /api/v1/users/{id}/follow
+  rpc FollowUser(FollowUserRequest) returns (auth.Confirmation) {
+    option (google.api.http) = { post: "/api/v1/users/{id}/follow" body: "*" };
+  }
+
+  // UnfollowUser → DELETE /api/v1/users/{id}/follow
+  rpc UnfollowUser(UnfollowUserRequest) returns (auth.Confirmation) {
+    option (google.api.http) = { delete: "/api/v1/users/{id}/follow" };
+  }
+  rpc UpdateAvatar(UpdateAvatarRequest) returns (UpdateAvatarResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users/{id}/avatar"
+      body: "*"
+    };
+  }
+
+  rpc GetFollowers(GetFollowersRequest) returns (Users) {
+    option (google.api.http) = { get: "/api/v1/users/{id}/followers" };
+  }
+
+  rpc GetFollowing(GetFollowingRequest) returns (Users) {
+    option (google.api.http) = { get: "/api/v1/users/{id}/following" };
+  }
+}
+
+// ----- Models -----
+message User {
+  string id = 1;
+  string firstName = 2;
+  string lastName = 3;
+  string bio = 4;
+  string avatar_url = 5;
+  string created_at = 6;
+  string birth_date = 7;
+}
+
+message Users {
+  repeated User users = 1;
+}
+
+// ----- Requests -----
+
+message GetFollowersRequest {
+  string id = 1;
+}
+message GetFollowingRequest {
+  string id = 1;
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message UpdateAvatarRequest {
+  string id = 1;
+  bytes avatar = 2;
+  string filename = 3;
+}
+
+message UpdateAvatarResponse {
+  string avatar_url = 1;
+}
+
+message UpdateUserRequest {
+  string id = 1;
+  string firstName = 2;
+  string lastName = 3;
+  string birthDate = 4;
+  string bio = 5;
+}
+
+message DeleteUserRequest {
+  string id = 1;
+}
+
+message EmptyRequest {}
+
+message FollowUserRequest {
+  string id = 1;
+}
+
+message UnfollowUserRequest {
+  string id = 1;
+}

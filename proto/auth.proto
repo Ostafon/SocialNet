@@ -1,0 +1,134 @@
+syntax = "proto3";
+
+package auth;
+option go_package = "socialnet/services/auth/gen;authpb";
+
+import "google/api/annotations.proto";
+
+service AuthService {
+  // Регистрация нового пользователя
+  rpc Register(RegisterRequest) returns (RegisterResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/register"
+      body: "*"
+    };
+  }
+
+  // Логин, выдача access + refresh токенов
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/login"
+      body: "*"
+    };
+  }
+
+  // Обновление access токена через refresh токен
+  rpc RefreshToken(RefreshRequest) returns (RefreshResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/refresh"
+      body: "*"
+    };
+  }
+
+  // Получение профиля текущего пользователя
+  rpc GetProfile(ProfileRequest) returns (ProfileResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/auth/me"
+    };
+  }
+
+  // Смена пароля
+  rpc UpdatePassword(UpdatePasswordRequest) returns (UpdatePasswordResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/update-password"
+      body: "*"
+    };
+  }
+
+  // Запрос на сброс пароля (отправка email)
+  rpc ForgotPassword(ForgotPasswordRequest) returns (ForgotPasswordResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/forgot-password"
+      body: "*"
+    };
+  }
+
+  // Подтверждение сброса пароля
+  rpc ResetPassword(ResetPasswordRequest) returns (Confirmation) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/reset-password"
+      body: "*"
+    };
+  }
+}
+
+// ----- ForgotPassword -----
+message ForgotPasswordRequest {
+  string email = 1;
+}
+message ForgotPasswordResponse {
+  string message = 1;
+  string status = 2;
+}
+
+// ----- ResetPassword -----
+message ResetPasswordRequest {
+  string reset_token = 1;
+  string new_password = 2;
+  string confirm_password = 3;
+}
+
+// ----- UpdatePassword -----
+message UpdatePasswordRequest {
+  string id = 1;
+  string current_password = 2;
+  string new_password = 3;
+}
+message UpdatePasswordResponse {
+  string message = 1;
+  string access_token = 2;
+}
+
+// ----- Register -----
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string username = 3;
+}
+message RegisterResponse {
+  string id = 1;
+  string access_token = 2;
+  string refresh_token = 3;
+}
+
+// ----- Login -----
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+message LoginResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+// ----- RefreshToken -----
+message RefreshRequest {
+  string refresh_token = 1;
+}
+message RefreshResponse {
+  string access_token = 1;
+}
+
+// ----- GetProfile -----
+message ProfileRequest {}
+message ProfileResponse {
+  string id = 1;
+  string email = 2;
+  string username = 3;
+  string created_at = 4;
+}
+
+// ----- Generic -----
+message Confirmation {
+  string status = 1;
+}

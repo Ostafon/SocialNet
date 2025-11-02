@@ -2,14 +2,11 @@ package repos
 
 import (
 	"fmt"
-	"github.com/joho/godotenv"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"os"
+	"socialnet/pkg/utils"
 	"socialnet/services/auth/internal/model"
-	"socialnet/services/auth/internal/utils"
 	"time"
 )
 
@@ -19,19 +16,6 @@ type UserRepo struct {
 
 func NewAuthRepo(db *gorm.DB) *UserRepo {
 	return &UserRepo{db: db}
-}
-
-// Connect открывает соединение с PostgreSQL
-func Connect() (*gorm.DB, error) {
-	if err := godotenv.Load(); err != nil {
-		return nil, err
-	}
-	dsn := os.Getenv("AUTH_BD")
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		return nil, utils.ErrorHandler(err, "Failed  connect to db")
-	}
-	return db, nil
 }
 
 func (r *UserRepo) RegisterDB(user *model.User) (uint, error) {

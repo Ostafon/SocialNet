@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"os"
+	"log"
 	"regexp"
 	utils2 "socialnet/pkg/utils"
 	pb "socialnet/services/auth/gen"
@@ -23,12 +23,14 @@ func NewAuthService(repo *repos.UserRepo) *AuthService {
 }
 
 func (s *AuthService) Register(req *pb.RegisterRequest) (string, string, error) {
+
+	log.Printf("Register: %s", req.Username)
 	// валидация
 	re := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$`)
 	if !re.MatchString(req.Email) {
 		return "", "", status.Error(codes.InvalidArgument, "invalid mail")
 	}
-	if err := utils.ValidateStruct(req); err != nil {
+	if err := utils2.ValidateStruct(req); err != nil {
 		return "", "", status.Error(codes.InvalidArgument, "required all fields")
 	}
 
@@ -73,7 +75,7 @@ func (s *AuthService) Register(req *pb.RegisterRequest) (string, string, error) 
 
 func (s *AuthService) Login(req *pb.LoginRequest) (string, string, error) {
 	// валидация
-	if err := utils.ValidateStruct(req); err != nil {
+	if err := utils2.ValidateStruct(req); err != nil {
 		return "", "", status.Error(codes.InvalidArgument, "required all fields")
 	}
 	user, err := s.repo.GetUserByEmail(req.Email)
@@ -112,7 +114,7 @@ func (s *AuthService) Login(req *pb.LoginRequest) (string, string, error) {
 func (s *AuthService) RefreshToken(req *pb.RefreshRequest) (string, error) {
 	id, err := s.repo.CheckRefreshToken(req.RefreshToken)
 	if err != nil {
-		return "", utils.ErrorHandler(err, "invalid token ")
+		return "", utils2.ErrorHandler(err, "invalid token ")
 	}
 
 	user, err := s.repo.GetUserById(id)
@@ -122,14 +124,14 @@ func (s *AuthService) RefreshToken(req *pb.RefreshRequest) (string, error) {
 
 	token, err := utils2.SignToken(fmt.Sprint(user.ID), user.Username)
 	if err != nil {
-		return "", utils.ErrorHandler(err, "internal error")
+		return "", utils2.ErrorHandler(err, "internal error")
 	}
 
 	return token, nil
 }
 
 func (s *AuthService) UpdatePassword(req *pb.UpdatePasswordRequest) (string, error) {
-	uid, err := utils.StringToUint(req.Id)
+	uid, err := utils2.StringToUint(req.Id)
 	if err != nil {
 		return "", status.Error(codes.Internal, "internal error")
 	}
@@ -164,9 +166,9 @@ func (s *AuthService) ForgotPassword(req *pb.ForgotPasswordRequest) error {
 		return status.Error(codes.NotFound, "user not found")
 	}
 
-	to := os.Getenv("TO_USER")
+	to := req.Email
 	token, err := utils.GenerateUUID()
-	resetLink := "http://localhost:8080/reset-password?token=" + token
+	resetLink := "http://localhost:3000/reset-password?token=" + token
 	if err != nil {
 		return status.Error(codes.Internal, "failed to generate reset token")
 	}
@@ -205,10 +207,7 @@ func (s *AuthService) ResetPassword(req *pb.ResetPasswordRequest) error {
 		return status.Error(codes.Internal, "failed to update password")
 	}
 
-	if err := s.repo.DeleteResetToken(reset.Token); err != nil {
-		return status.Error(codes.Internal, "failed to remove reset token")
-	}
-
+	fmt.Println(req.NewPassword)
 	return nil
 }
 

@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package chat;
+
+option go_package = "socialnet/services/chat/gen;chatpb";
+
+import "google/api/annotations.proto";
+
+service ChatService {
+  // CreateChat → POST /api/v1/chats
+  rpc CreateChat(CreateChatRequest) returns (Chat) {
+    option (google.api.http) = { post: "/api/v1/chats" body: "*" };
+  }
+
+  // GetChat → GET /api/v1/chats/{id}
+  rpc GetChat(GetChatRequest) returns (Chat) {
+    option (google.api.http) = { get: "/api/v1/chats/{id}" };
+  }
+
+  // ListChats → GET /api/v1/chats
+  rpc ListChats(EmptyRequest) returns (Chats) {
+    option (google.api.http) = { get: "/api/v1/chats" };
+  }
+
+  // SendMessage → POST /api/v1/chats/{chat_id}/messages
+  rpc SendMessage(SendMessageRequest) returns (Message) {
+    option (google.api.http) = { post: "/api/v1/chats/{chat_id}/messages" body: "*" };
+  }
+
+  // ListMessages → GET /api/v1/chats/{chat_id}/messages
+  rpc ListMessages(ListMessagesRequest) returns (Messages) {
+    option (google.api.http) = { get: "/api/v1/chats/{chat_id}/messages" };
+  }
+}
+
+// ---- Models ----
+message Chat {
+  string id = 1;
+  repeated string participants = 2;
+  string created_at = 3;
+  string updated_at = 4;
+}
+
+message Message {
+  string id = 1;
+  string chat_id = 2;
+  string sender_id = 3;
+  string content = 4;
+  string created_at = 5;
+  bool read = 6;
+}
+
+message Chats {
+  repeated Chat chats = 1;
+}
+
+message Messages {
+  repeated Message messages = 1;
+}
+
+// ---- Requests ----
+message CreateChatRequest {
+  repeated string participants = 1;
+}
+
+message GetChatRequest {
+  string id = 1;
+}
+
+message SendMessageRequest {
+  string chat_id = 1;
+  string content = 2;
+}
+
+message ListMessagesRequest {
+  string chat_id = 1;
+}
+
+message EmptyRequest {}

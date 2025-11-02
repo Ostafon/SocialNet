@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package post;
+
+option go_package = "socialnet/services/post/gen;postpb";
+
+import "google/api/annotations.proto";
+import "auth.proto";
+import "user.proto";
+
+service PostService {
+  // CreatePost → POST /api/v1/posts
+  rpc CreatePost(CreatePostRequest) returns (Post) {
+    option (google.api.http) = { post: "/api/v1/posts" body: "*" };
+  }
+
+  // GetPost → GET /api/v1/posts/{id}
+  rpc GetPost(GetPostRequest) returns (Post) {
+    option (google.api.http) = { get: "/api/v1/posts/{id}" };
+  }
+
+  // UpdatePost → PUT /api/v1/posts/{id}
+  rpc UpdatePost(UpdatePostRequest) returns (auth.Confirmation) {
+    option (google.api.http) = { put: "/api/v1/posts/{id}" body: "*" };
+  }
+
+  // DeletePost → DELETE /api/v1/posts/{id}
+  rpc DeletePost(DeletePostRequest) returns (auth.Confirmation) {
+    option (google.api.http) = { delete: "/api/v1/posts/{id}" };
+  }
+
+  // ListPosts → GET /api/v1/posts
+  rpc ListPosts(user.EmptyRequest) returns (Posts) {
+    option (google.api.http) = { get: "/api/v1/posts" };
+  }
+
+  // ListUserPosts → GET /api/v1/users/{id}/posts
+  rpc ListUserPosts(UserPostsRequest) returns (Posts) {
+    option (google.api.http) = { get: "/api/v1/users/{id}/posts" };
+  }
+}
+
+//---Models---
+message Post {
+  string id = 1;
+  string user_id = 2;
+  string content = 3;
+  string image_url = 4;
+  int32 likes_count = 5;
+  int32 comments_count = 6;
+  string created_at = 7;
+  string updated_at = 8;
+}
+
+message Posts {
+  repeated Post posts = 1;
+}
+
+//---Requests---
+message CreatePostRequest {
+  string content = 1;
+  bytes image = 2;
+  string fileName = 3;
+}
+
+message GetPostRequest {
+  string id = 1;
+}
+
+message UpdatePostRequest {
+  string id = 1;
+  string content = 2;
+  bytes image = 3;
+  string fileName = 4;
+}
+
+message DeletePostRequest {
+  string id = 1;
+}
+
+message UserPostsRequest {
+  string id = 1;
+}
+

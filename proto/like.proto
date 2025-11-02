@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package like;
+
+option go_package = "socialnet/services/like/gen;likepb";
+
+import "google/api/annotations.proto";
+
+service LikeService {
+  // LikePost → POST /api/v1/posts/{id}/like
+  rpc LikePost(LikePostRequest) returns (LikePostResponse) {
+    option (google.api.http) = { post: "/api/v1/posts/{id}/like" };
+  }
+
+  // UnlikePost → DELETE /api/v1/posts/{id}/like
+  rpc UnlikePost(LikePostRequest) returns (LikePostResponse) {
+    option (google.api.http) = { delete: "/api/v1/posts/{id}/like" };
+  }
+
+  // LikeComment → POST /api/v1/comments/{id}/like
+  rpc LikeComment(LikeCommentRequest) returns (LikeCommentResponse) {
+    option (google.api.http) = { post: "/api/v1/comments/{id}/like" };
+  }
+
+  // UnlikeComment → DELETE /api/v1/comments/{id}/like
+  rpc UnlikeComment(LikeCommentRequest) returns (LikeCommentResponse) {
+    option (google.api.http) = { delete: "/api/v1/comments/{id}/like" };
+  }
+
+  // ListPostLikes → GET /api/v1/posts/{id}/likes
+  rpc ListPostLikes(LikePostRequest) returns (ListLikesResponse) {
+    option (google.api.http) = { get: "/api/v1/posts/{id}/likes" };
+  }
+
+  // ListCommentLikes → GET /api/v1/comments/{id}/likes
+  rpc ListCommentLikes(LikeCommentRequest) returns (ListLikesResponse) {
+    option (google.api.http) = { get: "/api/v1/comments/{id}/likes" };
+  }
+}
+
+// ---- Models ----
+message Like {
+  string id = 1;
+  string user_id = 2;
+  string post_id = 3;
+  string comment_id = 4;
+  string created_at = 5;
+}
+
+// ---- Requests ----
+message LikePostRequest {
+  string id = 1;
+}
+
+message LikePostResponse {
+  string status = 1;
+  int32 likes_count = 2;
+}
+
+message LikeCommentRequest {
+  string id = 1;
+}
+
+message LikeCommentResponse {
+  string status = 1;
+  int32 likes_count = 2;
+}
+
+message ListLikesResponse {
+  repeated Like likes = 1;
+}

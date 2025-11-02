@@ -26,7 +26,12 @@ go.work.sum
 
 # env file
 services/auth/cmd/auth-service/.env
-services/auth/cmd/user-service/.env
+services/user/cmd/user-service/.env
+services/like/cmd/like-service/.env
+services/post/cmd/post-service/.env
+services/comment/cmd/comment-service/.env
+services/chat/cmd/chat-service/.env
+services/notification/cmd/notifications-service/.env
 
 # Editor/IDE
 # .idea/

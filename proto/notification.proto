@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package notification;
+
+option go_package = "socialnet/services/notification/gen;notificationpb";
+
+import "google/api/annotations.proto";
+import "auth.proto";
+
+
+service NotificationService {
+  // ListNotifications → GET /api/v1/notifications
+  rpc ListNotifications(EmptyRequest) returns (Notifications) {
+    option (google.api.http) = { get: "/api/v1/notifications" };
+  }
+
+  // MarkAsRead → POST /api/v1/notifications/{id}/read
+  rpc MarkAsRead(MarkAsReadRequest) returns (auth.Confirmation) {
+    option (google.api.http) = { post: "/api/v1/notifications/{id}/read" };
+  }
+
+  // DeleteNotification → DELETE /api/v1/notifications/{id}
+  rpc DeleteNotification(DeleteNotificationRequest) returns (auth.Confirmation) {
+    option (google.api.http) = { delete: "/api/v1/notifications/{id}" };
+  }
+}
+
+// ---- Models ----
+message Notification {
+  string id = 1;
+  string user_id = 2;
+  string type = 3;
+  string content = 4;
+  bool read = 5;
+  string created_at = 6;
+}
+
+message Notifications {
+  repeated Notification notifications = 1;
+}
+
+// ---- Requests ----
+message EmptyRequest {}
+
+message MarkAsReadRequest {
+  string id = 1; // совпадает с {id}
+}
+
+message DeleteNotificationRequest {
+  string id = 1; // совпадает с {id}
+}

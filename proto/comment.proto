@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package comment;
+
+option go_package = "socialnet/services/comment/gen;commentpb";
+
+import "google/api/annotations.proto";
+import "auth.proto";
+
+
+service CommentService {
+  // AddComment → POST /api/v1/posts/{post_id}/comments
+  rpc AddComment(AddCommentRequest) returns (Comment) {
+    option (google.api.http) = {
+      post: "/api/v1/posts/{post_id}/comments"
+      body: "*"
+    };
+  }
+
+  // GetComment → GET /api/v1/comments/{id}
+  rpc GetComment(GetCommentRequest) returns (Comment) {
+    option (google.api.http) = { get: "/api/v1/comments/{id}" };
+  }
+
+  // DeleteComment → DELETE /api/v1/comments/{id}
+  rpc DeleteComment(DeleteCommentRequest) returns (auth.Confirmation) {
+    option (google.api.http) = { delete: "/api/v1/comments/{id}" };
+  }
+
+  // ListComments → GET /api/v1/posts/{post_id}/comments
+  rpc ListComments(ListCommentsRequest) returns (Comments) {
+    option (google.api.http) = { get: "/api/v1/posts/{post_id}/comments" };
+  }
+}
+
+// ---- Models ----
+message Comment {
+  string id = 1;
+  string post_id = 2;
+  string user_id = 3;
+  string content = 4;
+  int32 likes_count = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}
+
+message Comments {
+  repeated Comment comments = 1;
+}
+
+// ---- Requests ----
+message AddCommentRequest {
+  string post_id = 1;
+  string content = 2;
+}
+
+message GetCommentRequest {
+  string id = 1;
+}
+
+message DeleteCommentRequest {
+  string id = 1;
+}
+
+message ListCommentsRequest {
+  string post_id = 1;
+}

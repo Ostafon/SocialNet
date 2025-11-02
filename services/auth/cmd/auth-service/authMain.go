@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"socialnet/pkg/interceptor"
 	authpb "socialnet/services/auth/gen"
 	"socialnet/services/auth/internal/handlers"
 	"socialnet/services/auth/internal/model"
@@ -37,12 +38,14 @@ func main() {
 	authHandler := handlers.NewAuthHandler(authService)
 
 	// 🔹 gRPC сервер
-	lis, err := net.Listen("tcp", ":50051")
+	lis, err := net.Listen("tcp", "0.0.0.0:50051")
 	if err != nil {
 		log.Fatalf(" failed to listen: %v", err)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(interceptor.ExtractUserInterceptor()),
+	)
 	authpb.RegisterAuthServiceServer(grpcServer, authHandler)
 
 	log.Println(" AuthService started on :50051")
