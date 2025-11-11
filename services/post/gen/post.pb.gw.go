@@ -21,6 +21,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"io"
 	"net/http"
+	userpb "socialnet/services/user/gen"
 )
 
 // Suppress "imported and not used" errors

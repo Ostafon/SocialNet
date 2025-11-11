@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"socialnet/pkg/contextx"
 	"socialnet/pkg/utils"
 	pb "socialnet/services/auth/gen"
 	"socialnet/services/auth/internal/service"
@@ -75,10 +76,11 @@ func (h *AuthHandler) ResetPassword(ctx context.Context, req *pb.ResetPasswordRe
 }
 
 func (h *AuthHandler) GetProfile(ctx context.Context, req *pb.ProfileRequest) (*pb.ProfileResponse, error) {
-	userId := ctx.Value("user_id").(string)
+	userId := contextx.GetUserID(ctx)
 	if userId == "" {
-		return nil, status.Error(codes.Internal, "user id is null")
+		return nil, status.Error(codes.Unauthenticated, "missing user_id in context")
 	}
+
 	fmt.Println("GetProfile userId:", userId)
 
 	id, err := utils.StringToUint(userId)

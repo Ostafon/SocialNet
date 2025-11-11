@@ -1,7 +1,6 @@
 package repos
 
 import (
-	"fmt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"gorm.io/gorm"
@@ -29,9 +28,17 @@ func (r *UserRepo) RegisterDB(user *model.User) (uint, error) {
 }
 
 func (r *UserRepo) SaveToken(token string, id uint) error {
-	refresh := &model.RefreshToken{Token: token, UserID: id, ExpiresAt: time.Now().Add(7 * 24 * time.Hour)}
-	err := r.db.Create(refresh).Error
-	if err != nil {
+	// Удаляем старые токены пользователя
+	if err := r.db.Where("user_id = ?", id).Delete(&model.RefreshToken{}).Error; err != nil {
+		return utils.ErrorHandler(err, "Cannot clear old refresh tokens")
+	}
+
+	refresh := &model.RefreshToken{
+		Token:     token,
+		UserID:    id,
+		ExpiresAt: time.Now().Add(7 * 24 * time.Hour),
+	}
+	if err := r.db.Create(refresh).Error; err != nil {
 		return utils.ErrorHandler(err, "Cannot add refresh token")
 	}
 
@@ -64,13 +71,17 @@ func (r *UserRepo) FindRefreshTokenById(id uint) (*model.RefreshToken, error) {
 
 func (r *UserRepo) CheckRefreshToken(refresh string) (uint, error) {
 	token := &model.RefreshToken{}
-	if token.ExpiresAt.Before(time.Now()) {
-		return 0, fmt.Errorf("refresh token expired")
+
+	// Сначала ищем в БД
+	if err := r.db.Where("token = ?", refresh).First(token).Error; err != nil {
+		return 0, status.Error(codes.Unauthenticated, "invalid refresh token")
 	}
 
-	if err := r.db.Where("token = ?", refresh).First(&token).Error; err != nil {
-		return 0, err
+	// Потом проверяем срок действия
+	if time.Now().After(token.ExpiresAt) {
+		return 0, status.Error(codes.Unauthenticated, "refresh token expired")
 	}
+
 	return token.UserID, nil
 }
 

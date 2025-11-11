@@ -57,6 +57,5 @@ func (s *PostService) CreatePost(ctx context.Context, req *pb.CreatePostRequest)
 }
 
 func (s *PostService) GetPost(req *pb.GetPostRequest) (*pb.Post, error)          {}
-func (s *PostService) UpdatePost(req *pb.UpdatePostRequest) (*pb.Post, error)    {}
 func (s *PostService) DeletePost(req *pb.DeletePostRequest) error                {}
 func (s *PostService) ListUserPosts(req *pb.UserPostsRequest) (*pb.Posts, error) {}

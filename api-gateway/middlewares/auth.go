@@ -61,17 +61,18 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		userId, _ := claims["sub"].(string)
 		username, _ := claims["name"].(string)
 
-		// 🔹 добавляем user-id в metadata (чтобы gRPC видел)
+		// 📌 добавляем заголовки, которые gRPC-Gateway преобразует в metadata
+		r.Header.Set("Grpc-Metadata-User-Id", userId)
+		r.Header.Set("Grpc-Metadata-Username", username)
+
+		// опционально — оставляем context для прямых gRPC вызовов
 		md := metadata.New(map[string]string{
 			"user-id":  userId,
 			"username": username,
 		})
-
-		// создаём context с metadata
 		ctx := metadata.NewOutgoingContext(r.Context(), md)
-
-		// передаём дальше по цепочке
 		r = r.WithContext(ctx)
+
 		next.ServeHTTP(w, r)
 	})
 }
