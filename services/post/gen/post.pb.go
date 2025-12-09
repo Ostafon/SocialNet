@@ -230,6 +230,42 @@ func (x *CreatePostRequest) GetFileName() string {
 	return ""
 }
 
+type GetFeedRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFeedRequest) Reset() {
+	*x = GetFeedRequest{}
+	mi := &file_post_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFeedRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFeedRequest) ProtoMessage() {}
+
+func (x *GetFeedRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_post_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFeedRequest.ProtoReflect.Descriptor instead.
+func (*GetFeedRequest) Descriptor() ([]byte, []int) {
+	return file_post_proto_rawDescGZIP(), []int{3}
+}
+
 type GetPostRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -239,7 +275,7 @@ type GetPostRequest struct {
 
 func (x *GetPostRequest) Reset() {
 	*x = GetPostRequest{}
-	mi := &file_post_proto_msgTypes[3]
+	mi := &file_post_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -251,7 +287,7 @@ func (x *GetPostRequest) String() string {
 func (*GetPostRequest) ProtoMessage() {}
 
 func (x *GetPostRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_post_proto_msgTypes[3]
+	mi := &file_post_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -264,7 +300,7 @@ func (x *GetPostRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPostRequest.ProtoReflect.Descriptor instead.
 func (*GetPostRequest) Descriptor() ([]byte, []int) {
-	return file_post_proto_rawDescGZIP(), []int{3}
+	return file_post_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetPostRequest) GetId() string {
@@ -286,7 +322,7 @@ type UpdatePostRequest struct {
 
 func (x *UpdatePostRequest) Reset() {
 	*x = UpdatePostRequest{}
-	mi := &file_post_proto_msgTypes[4]
+	mi := &file_post_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -298,7 +334,7 @@ func (x *UpdatePostRequest) String() string {
 func (*UpdatePostRequest) ProtoMessage() {}
 
 func (x *UpdatePostRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_post_proto_msgTypes[4]
+	mi := &file_post_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -311,7 +347,7 @@ func (x *UpdatePostRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePostRequest.ProtoReflect.Descriptor instead.
 func (*UpdatePostRequest) Descriptor() ([]byte, []int) {
-	return file_post_proto_rawDescGZIP(), []int{4}
+	return file_post_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *UpdatePostRequest) GetId() string {
@@ -351,7 +387,7 @@ type DeletePostRequest struct {
 
 func (x *DeletePostRequest) Reset() {
 	*x = DeletePostRequest{}
-	mi := &file_post_proto_msgTypes[5]
+	mi := &file_post_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -363,7 +399,7 @@ func (x *DeletePostRequest) String() string {
 func (*DeletePostRequest) ProtoMessage() {}
 
 func (x *DeletePostRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_post_proto_msgTypes[5]
+	mi := &file_post_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -376,7 +412,7 @@ func (x *DeletePostRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeletePostRequest.ProtoReflect.Descriptor instead.
 func (*DeletePostRequest) Descriptor() ([]byte, []int) {
-	return file_post_proto_rawDescGZIP(), []int{5}
+	return file_post_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *DeletePostRequest) GetId() string {
@@ -395,7 +431,7 @@ type UserPostsRequest struct {
 
 func (x *UserPostsRequest) Reset() {
 	*x = UserPostsRequest{}
-	mi := &file_post_proto_msgTypes[6]
+	mi := &file_post_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -407,7 +443,7 @@ func (x *UserPostsRequest) String() string {
 func (*UserPostsRequest) ProtoMessage() {}
 
 func (x *UserPostsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_post_proto_msgTypes[6]
+	mi := &file_post_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -420,7 +456,7 @@ func (x *UserPostsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserPostsRequest.ProtoReflect.Descriptor instead.
 func (*UserPostsRequest) Descriptor() ([]byte, []int) {
-	return file_post_proto_rawDescGZIP(), []int{6}
+	return file_post_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UserPostsRequest) GetId() string {
@@ -456,7 +492,8 @@ const file_post_proto_rawDesc = "" +
 	"\x11CreatePostRequest\x12\x18\n" +
 	"\acontent\x18\x01 \x01(\tR\acontent\x12\x14\n" +
 	"\x05image\x18\x02 \x01(\fR\x05image\x12\x1a\n" +
-	"\bfileName\x18\x03 \x01(\tR\bfileName\" \n" +
+	"\bfileName\x18\x03 \x01(\tR\bfileName\"\x10\n" +
+	"\x0eGetFeedRequest\" \n" +
 	"\x0eGetPostRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"o\n" +
 	"\x11UpdatePostRequest\x12\x0e\n" +
@@ -467,7 +504,7 @@ const file_post_proto_rawDesc = "" +
 	"\x11DeletePostRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\"\n" +
 	"\x10UserPostsRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id2\xf1\x03\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id2\xb5\x04\n" +
 	"\vPostService\x12K\n" +
 	"\n" +
 	"CreatePost\x12\x17.post.CreatePostRequest\x1a\n" +
@@ -479,7 +516,8 @@ const file_post_proto_rawDesc = "" +
 	"\n" +
 	"DeletePost\x12\x17.post.DeletePostRequest\x1a\x12.auth.Confirmation\"\x1a\x82\xd3\xe4\x93\x02\x14*\x12/api/v1/posts/{id}\x12C\n" +
 	"\tListPosts\x12\x12.user.EmptyRequest\x1a\v.post.Posts\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/api/v1/posts\x12V\n" +
-	"\rListUserPosts\x12\x16.post.UserPostsRequest\x1a\v.post.Posts\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/users/{id}/postsB$Z\"socialnet/services/post/gen;postpbb\x06proto3"
+	"\rListUserPosts\x12\x16.post.UserPostsRequest\x1a\v.post.Posts\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/users/{id}/posts\x12B\n" +
+	"\aGetFeed\x12\x14.post.GetFeedRequest\x1a\v.post.Posts\"\x14\x82\xd3\xe4\x93\x02\x0e\x12\f/api/v1/feedB$Z\"socialnet/services/post/gen;postpbb\x06proto3"
 
 var (
 	file_post_proto_rawDescOnce sync.Once
@@ -493,34 +531,37 @@ func file_post_proto_rawDescGZIP() []byte {
 	return file_post_proto_rawDescData
 }
 
-var file_post_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_post_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_post_proto_goTypes = []any{
 	(*Post)(nil),              // 0: post.Post
 	(*Posts)(nil),             // 1: post.Posts
 	(*CreatePostRequest)(nil), // 2: post.CreatePostRequest
-	(*GetPostRequest)(nil),    // 3: post.GetPostRequest
-	(*UpdatePostRequest)(nil), // 4: post.UpdatePostRequest
-	(*DeletePostRequest)(nil), // 5: post.DeletePostRequest
-	(*UserPostsRequest)(nil),  // 6: post.UserPostsRequest
-	(*gen.EmptyRequest)(nil),  // 7: user.EmptyRequest
-	(*gen1.Confirmation)(nil), // 8: auth.Confirmation
+	(*GetFeedRequest)(nil),    // 3: post.GetFeedRequest
+	(*GetPostRequest)(nil),    // 4: post.GetPostRequest
+	(*UpdatePostRequest)(nil), // 5: post.UpdatePostRequest
+	(*DeletePostRequest)(nil), // 6: post.DeletePostRequest
+	(*UserPostsRequest)(nil),  // 7: post.UserPostsRequest
+	(*gen.EmptyRequest)(nil),  // 8: user.EmptyRequest
+	(*gen1.Confirmation)(nil), // 9: auth.Confirmation
 }
 var file_post_proto_depIdxs = []int32{
 	0, // 0: post.Posts.posts:type_name -> post.Post
 	2, // 1: post.PostService.CreatePost:input_type -> post.CreatePostRequest
-	3, // 2: post.PostService.GetPost:input_type -> post.GetPostRequest
-	4, // 3: post.PostService.UpdatePost:input_type -> post.UpdatePostRequest
-	5, // 4: post.PostService.DeletePost:input_type -> post.DeletePostRequest
-	7, // 5: post.PostService.ListPosts:input_type -> user.EmptyRequest
-	6, // 6: post.PostService.ListUserPosts:input_type -> post.UserPostsRequest
-	0, // 7: post.PostService.CreatePost:output_type -> post.Post
-	0, // 8: post.PostService.GetPost:output_type -> post.Post
-	8, // 9: post.PostService.UpdatePost:output_type -> auth.Confirmation
-	8, // 10: post.PostService.DeletePost:output_type -> auth.Confirmation
-	1, // 11: post.PostService.ListPosts:output_type -> post.Posts
-	1, // 12: post.PostService.ListUserPosts:output_type -> post.Posts
-	7, // [7:13] is the sub-list for method output_type
-	1, // [1:7] is the sub-list for method input_type
+	4, // 2: post.PostService.GetPost:input_type -> post.GetPostRequest
+	5, // 3: post.PostService.UpdatePost:input_type -> post.UpdatePostRequest
+	6, // 4: post.PostService.DeletePost:input_type -> post.DeletePostRequest
+	8, // 5: post.PostService.ListPosts:input_type -> user.EmptyRequest
+	7, // 6: post.PostService.ListUserPosts:input_type -> post.UserPostsRequest
+	3, // 7: post.PostService.GetFeed:input_type -> post.GetFeedRequest
+	0, // 8: post.PostService.CreatePost:output_type -> post.Post
+	0, // 9: post.PostService.GetPost:output_type -> post.Post
+	9, // 10: post.PostService.UpdatePost:output_type -> auth.Confirmation
+	9, // 11: post.PostService.DeletePost:output_type -> auth.Confirmation
+	1, // 12: post.PostService.ListPosts:output_type -> post.Posts
+	1, // 13: post.PostService.ListUserPosts:output_type -> post.Posts
+	1, // 14: post.PostService.GetFeed:output_type -> post.Posts
+	8, // [8:15] is the sub-list for method output_type
+	1, // [1:8] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
@@ -537,7 +578,7 @@ func file_post_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_post_proto_rawDesc), len(file_post_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

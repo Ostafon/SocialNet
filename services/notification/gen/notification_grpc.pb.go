@@ -4,7 +4,7 @@
 // - protoc             v6.32.0--rc2
 // source: notification.proto
 
-package notificationpb
+package gen
 
 import (
 	context "context"
@@ -20,21 +20,30 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	NotificationService_ListNotifications_FullMethodName  = "/notification.NotificationService/ListNotifications"
-	NotificationService_MarkAsRead_FullMethodName         = "/notification.NotificationService/MarkAsRead"
-	NotificationService_DeleteNotification_FullMethodName = "/notification.NotificationService/DeleteNotification"
+	NotificationService_ListNotifications_FullMethodName   = "/notification.NotificationService/ListNotifications"
+	NotificationService_MarkAsRead_FullMethodName          = "/notification.NotificationService/MarkAsRead"
+	NotificationService_MarkAllAsRead_FullMethodName       = "/notification.NotificationService/MarkAllAsRead"
+	NotificationService_DeleteNotification_FullMethodName  = "/notification.NotificationService/DeleteNotification"
+	NotificationService_ClearAll_FullMethodName            = "/notification.NotificationService/ClearAll"
+	NotificationService_StreamNotifications_FullMethodName = "/notification.NotificationService/StreamNotifications"
 )
 
 // NotificationServiceClient is the client API for NotificationService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type NotificationServiceClient interface {
-	// ListNotifications → GET /api/v1/notifications
-	ListNotifications(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*Notifications, error)
-	// MarkAsRead → POST /api/v1/notifications/{id}/read
+	// --- Получить список уведомлений пользователя ---
+	ListNotifications(ctx context.Context, in *ListNotificationsRequest, opts ...grpc.CallOption) (*Notifications, error)
+	// --- Пометить уведомление как прочитанное ---
 	MarkAsRead(ctx context.Context, in *MarkAsReadRequest, opts ...grpc.CallOption) (*gen.Confirmation, error)
-	// DeleteNotification → DELETE /api/v1/notifications/{id}
+	// --- Пометить ВСЕ уведомления как прочитанные ---
+	MarkAllAsRead(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*gen.Confirmation, error)
+	// --- Удалить уведомление ---
 	DeleteNotification(ctx context.Context, in *DeleteNotificationRequest, opts ...grpc.CallOption) (*gen.Confirmation, error)
+	// --- Удалить все уведомления ---
+	ClearAll(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*gen.Confirmation, error)
+	// --- Поток уведомлений в реальном времени (через gRPC stream) ---
+	StreamNotifications(ctx context.Context, in *StreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Notification], error)
 }
 
 type notificationServiceClient struct {
@@ -45,7 +54,7 @@ func NewNotificationServiceClient(cc grpc.ClientConnInterface) NotificationServi
 	return &notificationServiceClient{cc}
 }
 
-func (c *notificationServiceClient) ListNotifications(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*Notifications, error) {
+func (c *notificationServiceClient) ListNotifications(ctx context.Context, in *ListNotificationsRequest, opts ...grpc.CallOption) (*Notifications, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Notifications)
 	err := c.cc.Invoke(ctx, NotificationService_ListNotifications_FullMethodName, in, out, cOpts...)
@@ -65,6 +74,16 @@ func (c *notificationServiceClient) MarkAsRead(ctx context.Context, in *MarkAsRe
 	return out, nil
 }
 
+func (c *notificationServiceClient) MarkAllAsRead(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*gen.Confirmation, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(gen.Confirmation)
+	err := c.cc.Invoke(ctx, NotificationService_MarkAllAsRead_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *notificationServiceClient) DeleteNotification(ctx context.Context, in *DeleteNotificationRequest, opts ...grpc.CallOption) (*gen.Confirmation, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(gen.Confirmation)
@@ -75,16 +94,51 @@ func (c *notificationServiceClient) DeleteNotification(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *notificationServiceClient) ClearAll(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*gen.Confirmation, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(gen.Confirmation)
+	err := c.cc.Invoke(ctx, NotificationService_ClearAll_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *notificationServiceClient) StreamNotifications(ctx context.Context, in *StreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Notification], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &NotificationService_ServiceDesc.Streams[0], NotificationService_StreamNotifications_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamRequest, Notification]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type NotificationService_StreamNotificationsClient = grpc.ServerStreamingClient[Notification]
+
 // NotificationServiceServer is the server API for NotificationService service.
 // All implementations must embed UnimplementedNotificationServiceServer
 // for forward compatibility.
 type NotificationServiceServer interface {
-	// ListNotifications → GET /api/v1/notifications
-	ListNotifications(context.Context, *EmptyRequest) (*Notifications, error)
-	// MarkAsRead → POST /api/v1/notifications/{id}/read
+	// --- Получить список уведомлений пользователя ---
+	ListNotifications(context.Context, *ListNotificationsRequest) (*Notifications, error)
+	// --- Пометить уведомление как прочитанное ---
 	MarkAsRead(context.Context, *MarkAsReadRequest) (*gen.Confirmation, error)
-	// DeleteNotification → DELETE /api/v1/notifications/{id}
+	// --- Пометить ВСЕ уведомления как прочитанные ---
+	MarkAllAsRead(context.Context, *EmptyRequest) (*gen.Confirmation, error)
+	// --- Удалить уведомление ---
 	DeleteNotification(context.Context, *DeleteNotificationRequest) (*gen.Confirmation, error)
+	// --- Удалить все уведомления ---
+	ClearAll(context.Context, *EmptyRequest) (*gen.Confirmation, error)
+	// --- Поток уведомлений в реальном времени (через gRPC stream) ---
+	StreamNotifications(*StreamRequest, grpc.ServerStreamingServer[Notification]) error
 	mustEmbedUnimplementedNotificationServiceServer()
 }
 
@@ -95,14 +149,23 @@ type NotificationServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedNotificationServiceServer struct{}
 
-func (UnimplementedNotificationServiceServer) ListNotifications(context.Context, *EmptyRequest) (*Notifications, error) {
+func (UnimplementedNotificationServiceServer) ListNotifications(context.Context, *ListNotificationsRequest) (*Notifications, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListNotifications not implemented")
 }
 func (UnimplementedNotificationServiceServer) MarkAsRead(context.Context, *MarkAsReadRequest) (*gen.Confirmation, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MarkAsRead not implemented")
 }
+func (UnimplementedNotificationServiceServer) MarkAllAsRead(context.Context, *EmptyRequest) (*gen.Confirmation, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MarkAllAsRead not implemented")
+}
 func (UnimplementedNotificationServiceServer) DeleteNotification(context.Context, *DeleteNotificationRequest) (*gen.Confirmation, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteNotification not implemented")
+}
+func (UnimplementedNotificationServiceServer) ClearAll(context.Context, *EmptyRequest) (*gen.Confirmation, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClearAll not implemented")
+}
+func (UnimplementedNotificationServiceServer) StreamNotifications(*StreamRequest, grpc.ServerStreamingServer[Notification]) error {
+	return status.Errorf(codes.Unimplemented, "method StreamNotifications not implemented")
 }
 func (UnimplementedNotificationServiceServer) mustEmbedUnimplementedNotificationServiceServer() {}
 func (UnimplementedNotificationServiceServer) testEmbeddedByValue()                             {}
@@ -126,7 +189,7 @@ func RegisterNotificationServiceServer(s grpc.ServiceRegistrar, srv Notification
 }
 
 func _NotificationService_ListNotifications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EmptyRequest)
+	in := new(ListNotificationsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -138,7 +201,7 @@ func _NotificationService_ListNotifications_Handler(srv interface{}, ctx context
 		FullMethod: NotificationService_ListNotifications_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NotificationServiceServer).ListNotifications(ctx, req.(*EmptyRequest))
+		return srv.(NotificationServiceServer).ListNotifications(ctx, req.(*ListNotificationsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -161,6 +224,24 @@ func _NotificationService_MarkAsRead_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NotificationService_MarkAllAsRead_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmptyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NotificationServiceServer).MarkAllAsRead(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NotificationService_MarkAllAsRead_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NotificationServiceServer).MarkAllAsRead(ctx, req.(*EmptyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _NotificationService_DeleteNotification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteNotificationRequest)
 	if err := dec(in); err != nil {
@@ -179,6 +260,35 @@ func _NotificationService_DeleteNotification_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NotificationService_ClearAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmptyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NotificationServiceServer).ClearAll(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NotificationService_ClearAll_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NotificationServiceServer).ClearAll(ctx, req.(*EmptyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NotificationService_StreamNotifications_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NotificationServiceServer).StreamNotifications(m, &grpc.GenericServerStream[StreamRequest, Notification]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type NotificationService_StreamNotificationsServer = grpc.ServerStreamingServer[Notification]
+
 // NotificationService_ServiceDesc is the grpc.ServiceDesc for NotificationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -195,10 +305,24 @@ var NotificationService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _NotificationService_MarkAsRead_Handler,
 		},
 		{
+			MethodName: "MarkAllAsRead",
+			Handler:    _NotificationService_MarkAllAsRead_Handler,
+		},
+		{
 			MethodName: "DeleteNotification",
 			Handler:    _NotificationService_DeleteNotification_Handler,
 		},
+		{
+			MethodName: "ClearAll",
+			Handler:    _NotificationService_ClearAll_Handler,
+		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "StreamNotifications",
+			Handler:       _NotificationService_StreamNotifications_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "notification.proto",
 }

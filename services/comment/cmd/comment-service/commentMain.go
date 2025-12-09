@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"socialnet/pkg/interceptor"
+	"socialnet/pkg/logger"
 	"socialnet/services/comment/internal/model"
 
 	"google.golang.org/grpc"
@@ -22,7 +23,8 @@ func main() {
 	if dsn == "" {
 		dsn = "host=localhost user=postgres password=postgres dbname=commentdb port=5432 sslmode=disable"
 	}
-
+	logger.Init("CommentService")
+	defer logger.Sync()
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("failed to connect to DB: %v", err)
@@ -37,7 +39,10 @@ func main() {
 	handler := handlers.NewCommentHandler(service)
 
 	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(interceptor.ExtractUserInterceptor()),
+		grpc.ChainUnaryInterceptor(
+			interceptor.ExtractUserInterceptor(),
+			interceptor.LoggingInterceptor(),
+		),
 	)
 
 	pb.RegisterCommentServiceServer(grpcServer, handler)

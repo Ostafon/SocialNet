@@ -4,7 +4,7 @@
 // 	protoc        v6.32.0--rc2
 // source: search.proto
 
-package searchpb
+package gen
 
 import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
@@ -25,27 +25,28 @@ const (
 )
 
 // ---- Requests ----
-type SearchUsersRequest struct {
+type SearchRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Query         string                 `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
+	Query         string                 `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`  // поисковая строка
+	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"` // лимит на количество результатов
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *SearchUsersRequest) Reset() {
-	*x = SearchUsersRequest{}
+func (x *SearchRequest) Reset() {
+	*x = SearchRequest{}
 	mi := &file_search_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *SearchUsersRequest) String() string {
+func (x *SearchRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SearchUsersRequest) ProtoMessage() {}
+func (*SearchRequest) ProtoMessage() {}
 
-func (x *SearchUsersRequest) ProtoReflect() protoreflect.Message {
+func (x *SearchRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_search_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -57,60 +58,23 @@ func (x *SearchUsersRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SearchUsersRequest.ProtoReflect.Descriptor instead.
-func (*SearchUsersRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use SearchRequest.ProtoReflect.Descriptor instead.
+func (*SearchRequest) Descriptor() ([]byte, []int) {
 	return file_search_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *SearchUsersRequest) GetQuery() string {
+func (x *SearchRequest) GetQuery() string {
 	if x != nil {
 		return x.Query
 	}
 	return ""
 }
 
-type SearchPostsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Query         string                 `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SearchPostsRequest) Reset() {
-	*x = SearchPostsRequest{}
-	mi := &file_search_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SearchPostsRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SearchPostsRequest) ProtoMessage() {}
-
-func (x *SearchPostsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_search_proto_msgTypes[1]
+func (x *SearchRequest) GetLimit() int32 {
 	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
+		return x.Limit
 	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SearchPostsRequest.ProtoReflect.Descriptor instead.
-func (*SearchPostsRequest) Descriptor() ([]byte, []int) {
-	return file_search_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *SearchPostsRequest) GetQuery() string {
-	if x != nil {
-		return x.Query
-	}
-	return ""
+	return 0
 }
 
 // ---- Responses ----
@@ -123,7 +87,7 @@ type SearchUsersResponse struct {
 
 func (x *SearchUsersResponse) Reset() {
 	*x = SearchUsersResponse{}
-	mi := &file_search_proto_msgTypes[2]
+	mi := &file_search_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -135,7 +99,7 @@ func (x *SearchUsersResponse) String() string {
 func (*SearchUsersResponse) ProtoMessage() {}
 
 func (x *SearchUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_search_proto_msgTypes[2]
+	mi := &file_search_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -148,7 +112,7 @@ func (x *SearchUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchUsersResponse.ProtoReflect.Descriptor instead.
 func (*SearchUsersResponse) Descriptor() ([]byte, []int) {
-	return file_search_proto_rawDescGZIP(), []int{2}
+	return file_search_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *SearchUsersResponse) GetUsers() []*gen.User {
@@ -167,7 +131,7 @@ type SearchPostsResponse struct {
 
 func (x *SearchPostsResponse) Reset() {
 	*x = SearchPostsResponse{}
-	mi := &file_search_proto_msgTypes[3]
+	mi := &file_search_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -179,7 +143,7 @@ func (x *SearchPostsResponse) String() string {
 func (*SearchPostsResponse) ProtoMessage() {}
 
 func (x *SearchPostsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_search_proto_msgTypes[3]
+	mi := &file_search_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -192,10 +156,62 @@ func (x *SearchPostsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchPostsResponse.ProtoReflect.Descriptor instead.
 func (*SearchPostsResponse) Descriptor() ([]byte, []int) {
-	return file_search_proto_rawDescGZIP(), []int{3}
+	return file_search_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *SearchPostsResponse) GetPosts() []*gen1.Post {
+	if x != nil {
+		return x.Posts
+	}
+	return nil
+}
+
+type SearchAllResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Users         []*gen.User            `protobuf:"bytes,1,rep,name=users,proto3" json:"users,omitempty"`
+	Posts         []*gen1.Post           `protobuf:"bytes,2,rep,name=posts,proto3" json:"posts,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchAllResponse) Reset() {
+	*x = SearchAllResponse{}
+	mi := &file_search_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchAllResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchAllResponse) ProtoMessage() {}
+
+func (x *SearchAllResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_search_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchAllResponse.ProtoReflect.Descriptor instead.
+func (*SearchAllResponse) Descriptor() ([]byte, []int) {
+	return file_search_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *SearchAllResponse) GetUsers() []*gen.User {
+	if x != nil {
+		return x.Users
+	}
+	return nil
+}
+
+func (x *SearchAllResponse) GetPosts() []*gen1.Post {
 	if x != nil {
 		return x.Posts
 	}
@@ -208,20 +224,25 @@ const file_search_proto_rawDesc = "" +
 	"\n" +
 	"\fsearch.proto\x12\x06search\x1a\x1cgoogle/api/annotations.proto\x1a\n" +
 	"user.proto\x1a\n" +
-	"post.proto\"*\n" +
-	"\x12SearchUsersRequest\x12\x14\n" +
-	"\x05query\x18\x01 \x01(\tR\x05query\"*\n" +
-	"\x12SearchPostsRequest\x12\x14\n" +
-	"\x05query\x18\x01 \x01(\tR\x05query\"7\n" +
+	"post.proto\";\n" +
+	"\rSearchRequest\x12\x14\n" +
+	"\x05query\x18\x01 \x01(\tR\x05query\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x05R\x05limit\"7\n" +
 	"\x13SearchUsersResponse\x12 \n" +
 	"\x05users\x18\x01 \x03(\v2\n" +
 	".user.UserR\x05users\"7\n" +
 	"\x13SearchPostsResponse\x12 \n" +
 	"\x05posts\x18\x01 \x03(\v2\n" +
-	".post.PostR\x05posts2\xdb\x01\n" +
-	"\rSearchService\x12d\n" +
-	"\vSearchUsers\x12\x1a.search.SearchUsersRequest\x1a\x1b.search.SearchUsersResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v1/search/users\x12d\n" +
-	"\vSearchPosts\x12\x1a.search.SearchPostsRequest\x1a\x1b.search.SearchPostsResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v1/search/postsB(Z&socialnet/services/search/gen;searchpbb\x06proto3"
+	".post.PostR\x05posts\"W\n" +
+	"\x11SearchAllResponse\x12 \n" +
+	"\x05users\x18\x01 \x03(\v2\n" +
+	".user.UserR\x05users\x12 \n" +
+	"\x05posts\x18\x02 \x03(\v2\n" +
+	".post.PostR\x05posts2\xa8\x02\n" +
+	"\rSearchService\x12_\n" +
+	"\vSearchUsers\x12\x15.search.SearchRequest\x1a\x1b.search.SearchUsersResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v1/search/users\x12_\n" +
+	"\vSearchPosts\x12\x15.search.SearchRequest\x1a\x1b.search.SearchPostsResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v1/search/posts\x12U\n" +
+	"\tSearchAll\x12\x15.search.SearchRequest\x1a\x19.search.SearchAllResponse\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/api/v1/searchB(Z&socialnet/services/search/gen;searchpbb\x06proto3"
 
 var (
 	file_search_proto_rawDescOnce sync.Once
@@ -237,25 +258,29 @@ func file_search_proto_rawDescGZIP() []byte {
 
 var file_search_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_search_proto_goTypes = []any{
-	(*SearchUsersRequest)(nil),  // 0: search.SearchUsersRequest
-	(*SearchPostsRequest)(nil),  // 1: search.SearchPostsRequest
-	(*SearchUsersResponse)(nil), // 2: search.SearchUsersResponse
-	(*SearchPostsResponse)(nil), // 3: search.SearchPostsResponse
+	(*SearchRequest)(nil),       // 0: search.SearchRequest
+	(*SearchUsersResponse)(nil), // 1: search.SearchUsersResponse
+	(*SearchPostsResponse)(nil), // 2: search.SearchPostsResponse
+	(*SearchAllResponse)(nil),   // 3: search.SearchAllResponse
 	(*gen.User)(nil),            // 4: user.User
 	(*gen1.Post)(nil),           // 5: post.Post
 }
 var file_search_proto_depIdxs = []int32{
 	4, // 0: search.SearchUsersResponse.users:type_name -> user.User
 	5, // 1: search.SearchPostsResponse.posts:type_name -> post.Post
-	0, // 2: search.SearchService.SearchUsers:input_type -> search.SearchUsersRequest
-	1, // 3: search.SearchService.SearchPosts:input_type -> search.SearchPostsRequest
-	2, // 4: search.SearchService.SearchUsers:output_type -> search.SearchUsersResponse
-	3, // 5: search.SearchService.SearchPosts:output_type -> search.SearchPostsResponse
-	4, // [4:6] is the sub-list for method output_type
-	2, // [2:4] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	4, // 2: search.SearchAllResponse.users:type_name -> user.User
+	5, // 3: search.SearchAllResponse.posts:type_name -> post.Post
+	0, // 4: search.SearchService.SearchUsers:input_type -> search.SearchRequest
+	0, // 5: search.SearchService.SearchPosts:input_type -> search.SearchRequest
+	0, // 6: search.SearchService.SearchAll:input_type -> search.SearchRequest
+	1, // 7: search.SearchService.SearchUsers:output_type -> search.SearchUsersResponse
+	2, // 8: search.SearchService.SearchPosts:output_type -> search.SearchPostsResponse
+	3, // 9: search.SearchService.SearchAll:output_type -> search.SearchAllResponse
+	7, // [7:10] is the sub-list for method output_type
+	4, // [4:7] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_search_proto_init() }

@@ -99,3 +99,42 @@ func (s *UserService) UnfollowUser(followerID, followingID string) error {
 	}
 	return nil
 }
+
+func (s *UserService) GetFollowing(userID string) ([]*pb.User, error) {
+	users, err := s.repo.GetFollowing(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Преобразуем в protobuf
+	var pbUsers []*pb.User
+	for _, u := range users {
+		pbUsers = append(pbUsers, &pb.User{
+			Id: fmt.Sprint(u.Id),
+		})
+	}
+	return pbUsers, nil
+}
+
+func (s *UserService) GetAllUsers() (*pb.Users, error) {
+	users, err := s.repo.GetAllUsers()
+	if err != nil {
+		return nil, err
+	}
+
+	var pbUsers []*pb.User
+	for _, v := range users {
+		pbUsers = append(
+			pbUsers,
+			&pb.User{
+				Id:        fmt.Sprint(v.Id),
+				FirstName: v.Firstname,
+				LastName:  v.Lastname,
+				BirthDate: v.BirthDate,
+				Bio:       v.Bio,
+			},
+		)
+	}
+
+	return &pb.Users{Users: pbUsers}, nil
+}

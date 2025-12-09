@@ -4,7 +4,7 @@
 // - protoc             v6.32.0--rc2
 // source: search.proto
 
-package searchpb
+package gen
 
 import (
 	context "context"
@@ -21,16 +21,19 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	SearchService_SearchUsers_FullMethodName = "/search.SearchService/SearchUsers"
 	SearchService_SearchPosts_FullMethodName = "/search.SearchService/SearchPosts"
+	SearchService_SearchAll_FullMethodName   = "/search.SearchService/SearchAll"
 )
 
 // SearchServiceClient is the client API for SearchService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SearchServiceClient interface {
-	// SearchUsers → GET /api/v1/search/users?q={query}
-	SearchUsers(ctx context.Context, in *SearchUsersRequest, opts ...grpc.CallOption) (*SearchUsersResponse, error)
-	// SearchPosts → GET /api/v1/search/posts?q={query}
-	SearchPosts(ctx context.Context, in *SearchPostsRequest, opts ...grpc.CallOption) (*SearchPostsResponse, error)
+	// 🔍 Поиск пользователей
+	SearchUsers(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchUsersResponse, error)
+	// 🔍 Поиск постов
+	SearchPosts(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchPostsResponse, error)
+	// 🔍 Универсальный поиск по всем (юзеры + посты)
+	SearchAll(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchAllResponse, error)
 }
 
 type searchServiceClient struct {
@@ -41,7 +44,7 @@ func NewSearchServiceClient(cc grpc.ClientConnInterface) SearchServiceClient {
 	return &searchServiceClient{cc}
 }
 
-func (c *searchServiceClient) SearchUsers(ctx context.Context, in *SearchUsersRequest, opts ...grpc.CallOption) (*SearchUsersResponse, error) {
+func (c *searchServiceClient) SearchUsers(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchUsersResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SearchUsersResponse)
 	err := c.cc.Invoke(ctx, SearchService_SearchUsers_FullMethodName, in, out, cOpts...)
@@ -51,10 +54,20 @@ func (c *searchServiceClient) SearchUsers(ctx context.Context, in *SearchUsersRe
 	return out, nil
 }
 
-func (c *searchServiceClient) SearchPosts(ctx context.Context, in *SearchPostsRequest, opts ...grpc.CallOption) (*SearchPostsResponse, error) {
+func (c *searchServiceClient) SearchPosts(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchPostsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SearchPostsResponse)
 	err := c.cc.Invoke(ctx, SearchService_SearchPosts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *searchServiceClient) SearchAll(ctx context.Context, in *SearchRequest, opts ...grpc.CallOption) (*SearchAllResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchAllResponse)
+	err := c.cc.Invoke(ctx, SearchService_SearchAll_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -65,10 +78,12 @@ func (c *searchServiceClient) SearchPosts(ctx context.Context, in *SearchPostsRe
 // All implementations must embed UnimplementedSearchServiceServer
 // for forward compatibility.
 type SearchServiceServer interface {
-	// SearchUsers → GET /api/v1/search/users?q={query}
-	SearchUsers(context.Context, *SearchUsersRequest) (*SearchUsersResponse, error)
-	// SearchPosts → GET /api/v1/search/posts?q={query}
-	SearchPosts(context.Context, *SearchPostsRequest) (*SearchPostsResponse, error)
+	// 🔍 Поиск пользователей
+	SearchUsers(context.Context, *SearchRequest) (*SearchUsersResponse, error)
+	// 🔍 Поиск постов
+	SearchPosts(context.Context, *SearchRequest) (*SearchPostsResponse, error)
+	// 🔍 Универсальный поиск по всем (юзеры + посты)
+	SearchAll(context.Context, *SearchRequest) (*SearchAllResponse, error)
 	mustEmbedUnimplementedSearchServiceServer()
 }
 
@@ -79,11 +94,14 @@ type SearchServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedSearchServiceServer struct{}
 
-func (UnimplementedSearchServiceServer) SearchUsers(context.Context, *SearchUsersRequest) (*SearchUsersResponse, error) {
+func (UnimplementedSearchServiceServer) SearchUsers(context.Context, *SearchRequest) (*SearchUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchUsers not implemented")
 }
-func (UnimplementedSearchServiceServer) SearchPosts(context.Context, *SearchPostsRequest) (*SearchPostsResponse, error) {
+func (UnimplementedSearchServiceServer) SearchPosts(context.Context, *SearchRequest) (*SearchPostsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchPosts not implemented")
+}
+func (UnimplementedSearchServiceServer) SearchAll(context.Context, *SearchRequest) (*SearchAllResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchAll not implemented")
 }
 func (UnimplementedSearchServiceServer) mustEmbedUnimplementedSearchServiceServer() {}
 func (UnimplementedSearchServiceServer) testEmbeddedByValue()                       {}
@@ -107,7 +125,7 @@ func RegisterSearchServiceServer(s grpc.ServiceRegistrar, srv SearchServiceServe
 }
 
 func _SearchService_SearchUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SearchUsersRequest)
+	in := new(SearchRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -119,13 +137,13 @@ func _SearchService_SearchUsers_Handler(srv interface{}, ctx context.Context, de
 		FullMethod: SearchService_SearchUsers_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SearchServiceServer).SearchUsers(ctx, req.(*SearchUsersRequest))
+		return srv.(SearchServiceServer).SearchUsers(ctx, req.(*SearchRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _SearchService_SearchPosts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SearchPostsRequest)
+	in := new(SearchRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -137,7 +155,25 @@ func _SearchService_SearchPosts_Handler(srv interface{}, ctx context.Context, de
 		FullMethod: SearchService_SearchPosts_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SearchServiceServer).SearchPosts(ctx, req.(*SearchPostsRequest))
+		return srv.(SearchServiceServer).SearchPosts(ctx, req.(*SearchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SearchService_SearchAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SearchServiceServer).SearchAll(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SearchService_SearchAll_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SearchServiceServer).SearchAll(ctx, req.(*SearchRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -156,6 +192,10 @@ var SearchService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SearchPosts",
 			Handler:    _SearchService_SearchPosts_Handler,
+		},
+		{
+			MethodName: "SearchAll",
+			Handler:    _SearchService_SearchAll_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

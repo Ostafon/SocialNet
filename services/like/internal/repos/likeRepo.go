@@ -34,6 +34,19 @@ func (r *LikeRepo) ListPostLikes(postID string) ([]model.Like, error) {
 	err := r.db.Where("post_id = ?", postID).Find(&likes).Error
 	return likes, err
 }
+func (r *LikeRepo) HasUserLikedPost(userID, postID string) (bool, error) {
+	var count int64
+	err := r.db.
+		Model(&model.Like{}).
+		Where("user_id = ? AND post_id = ?", userID, postID).
+		Count(&count).Error
+
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}
 
 // ---- COMMENT ----
 func (r *LikeRepo) LikeComment(userID, commentID string) error {

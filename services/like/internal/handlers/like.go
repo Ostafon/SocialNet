@@ -4,6 +4,7 @@ import (
 	"context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"socialnet/pkg/contextx"
 	pb "socialnet/services/like/gen"
 	"socialnet/services/like/internal/service"
 )
@@ -18,33 +19,33 @@ func NewLikeHandler(s *service.LikeService) *LikeHandler {
 }
 
 func (h *LikeHandler) LikePost(ctx context.Context, req *pb.LikePostRequest) (*pb.LikePostResponse, error) {
-	userID := ctx.Value("user_id").(string)
+	userID := contextx.GetUserID(ctx)
 	if userID == "" {
-		return nil, status.Error(codes.Internal, "Like-service user id is null")
+		return nil, status.Error(codes.Unauthenticated, "missing user id")
 	}
 	return h.service.LikePost(ctx, userID, req.Id)
 }
 
 func (h *LikeHandler) UnlikePost(ctx context.Context, req *pb.LikePostRequest) (*pb.LikePostResponse, error) {
-	userID := ctx.Value("user_id").(string)
+	userID := contextx.GetUserID(ctx)
 	if userID == "" {
-		return nil, status.Error(codes.Internal, "Like-service user id is null")
+		return nil, status.Error(codes.Unauthenticated, "missing user id")
 	}
 	return h.service.UnlikePost(ctx, userID, req.Id)
 }
 
 func (h *LikeHandler) LikeComment(ctx context.Context, req *pb.LikeCommentRequest) (*pb.LikeCommentResponse, error) {
-	userID := ctx.Value("user_id").(string)
+	userID := contextx.GetUserID(ctx)
 	if userID == "" {
-		return nil, status.Error(codes.Internal, "Like-service user id is null")
+		return nil, status.Error(codes.Unauthenticated, "missing user id")
 	}
 	return h.service.LikeComment(ctx, userID, req.Id)
 }
 
 func (h *LikeHandler) UnlikeComment(ctx context.Context, req *pb.LikeCommentRequest) (*pb.LikeCommentResponse, error) {
-	userID := ctx.Value("user_id").(string)
+	userID := contextx.GetUserID(ctx)
 	if userID == "" {
-		return nil, status.Error(codes.Internal, "Like-service user id is null")
+		return nil, status.Error(codes.Unauthenticated, "missing user id")
 	}
 	return h.service.UnlikeComment(ctx, userID, req.Id)
 }

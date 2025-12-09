@@ -4,6 +4,7 @@ import (
 	"context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"socialnet/pkg/contextx"
 	pbauth "socialnet/services/auth/gen"
 	pb "socialnet/services/comment/gen"
 	"socialnet/services/comment/internal/service"
@@ -19,9 +20,9 @@ func NewCommentHandler(s *service.CommentService) *CommentHandler {
 }
 
 func (h *CommentHandler) AddComment(ctx context.Context, req *pb.AddCommentRequest) (*pb.Comment, error) {
-	userID := ctx.Value("user_id").(string)
+	userID := contextx.GetUserID(ctx)
 	if userID == "" {
-		return nil, status.Error(codes.Internal, "user id is null")
+		return nil, status.Error(codes.Unauthenticated, "missing user id")
 	}
 	return h.service.AddComment(ctx, userID, req)
 }
@@ -31,9 +32,9 @@ func (h *CommentHandler) GetComment(ctx context.Context, req *pb.GetCommentReque
 }
 
 func (h *CommentHandler) DeleteComment(ctx context.Context, req *pb.DeleteCommentRequest) (*pbauth.Confirmation, error) {
-	userID := ctx.Value("user_id").(string)
+	userID := contextx.GetUserID(ctx)
 	if userID == "" {
-		return nil, status.Error(codes.Internal, "user id is null")
+		return nil, status.Error(codes.Unauthenticated, "missing user id")
 	}
 	if err := h.service.DeleteComment(ctx, req.Id, userID); err != nil {
 		return nil, err

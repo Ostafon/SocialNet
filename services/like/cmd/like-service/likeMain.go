@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"socialnet/pkg/interceptor"
+	"socialnet/pkg/logger"
 	"socialnet/services/like/internal/model"
 
 	"google.golang.org/grpc"
@@ -23,6 +24,9 @@ func main() {
 		dsn = "host=localhost user=postgres password=postgres dbname=likedb port=5432 sslmode=disable"
 	}
 
+	logger.Init("LikeService")
+	defer logger.Sync()
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("failed to connect to DB: %v", err)
@@ -37,7 +41,10 @@ func main() {
 	handler := handlers.NewLikeHandler(service)
 
 	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(interceptor.ExtractUserInterceptor()),
+		grpc.ChainUnaryInterceptor(
+			interceptor.ExtractUserInterceptor(),
+			interceptor.LoggingInterceptor(),
+		),
 	)
 
 	pb.RegisterLikeServiceServer(grpcServer, handler)

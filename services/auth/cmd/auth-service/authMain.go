@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"socialnet/pkg/interceptor"
+	"socialnet/pkg/logger"
 	authpb "socialnet/services/auth/gen"
 	"socialnet/services/auth/internal/handlers"
 	"socialnet/services/auth/internal/model"
@@ -21,10 +22,13 @@ func main() {
 		dsn = "host=localhost user=postgres password=postgres dbname=authdb port=5432 sslmode=disable"
 	}
 
+	logger.Init("AuthService")
+	defer logger.Sync()
+
 	// 🔹 Подключаемся к БД
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalf(" failed to connect to database: %v", err)
+		logger.Log.Fatalw("❌ Failed to connect to DB", "error", err)
 	}
 
 	// 🔹 Автомиграции
@@ -44,7 +48,10 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(interceptor.ExtractUserInterceptor()),
+		grpc.ChainUnaryInterceptor(
+			interceptor.ExtractUserInterceptor(),
+			interceptor.LoggingInterceptor(),
+		),
 	)
 	authpb.RegisterAuthServiceServer(grpcServer, authHandler)
 

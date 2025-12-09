@@ -4,13 +4,14 @@
 // - protoc             v6.32.0--rc2
 // source: chat.proto
 
-package chatpb
+package gen
 
 import (
 	context "context"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	gen "socialnet/services/auth/gen"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -19,27 +20,40 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ChatService_CreateChat_FullMethodName   = "/chat.ChatService/CreateChat"
-	ChatService_GetChat_FullMethodName      = "/chat.ChatService/GetChat"
-	ChatService_ListChats_FullMethodName    = "/chat.ChatService/ListChats"
-	ChatService_SendMessage_FullMethodName  = "/chat.ChatService/SendMessage"
-	ChatService_ListMessages_FullMethodName = "/chat.ChatService/ListMessages"
+	ChatService_CreateChat_FullMethodName        = "/chat.ChatService/CreateChat"
+	ChatService_GetChat_FullMethodName           = "/chat.ChatService/GetChat"
+	ChatService_ListChats_FullMethodName         = "/chat.ChatService/ListChats"
+	ChatService_SendMessage_FullMethodName       = "/chat.ChatService/SendMessage"
+	ChatService_ListMessages_FullMethodName      = "/chat.ChatService/ListMessages"
+	ChatService_DeleteChat_FullMethodName        = "/chat.ChatService/DeleteChat"
+	ChatService_ChatStream_FullMethodName        = "/chat.ChatService/ChatStream"
+	ChatService_SubscribeMessages_FullMethodName = "/chat.ChatService/SubscribeMessages"
+	ChatService_MarkAsRead_FullMethodName        = "/chat.ChatService/MarkAsRead"
 )
 
 // ChatServiceClient is the client API for ChatService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ChatServiceClient interface {
-	// CreateChat → POST /api/v1/chats
+	// --- Создать чат (1-на-1 или групповой) ---
 	CreateChat(ctx context.Context, in *CreateChatRequest, opts ...grpc.CallOption) (*Chat, error)
-	// GetChat → GET /api/v1/chats/{id}
+	// --- Получить чат по ID ---
 	GetChat(ctx context.Context, in *GetChatRequest, opts ...grpc.CallOption) (*Chat, error)
-	// ListChats → GET /api/v1/chats
+	// --- Список чатов текущего пользователя ---
 	ListChats(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*Chats, error)
-	// SendMessage → POST /api/v1/chats/{chat_id}/messages
+	// --- Отправить сообщение ---
 	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*Message, error)
-	// ListMessages → GET /api/v1/chats/{chat_id}/messages
+	// --- Получить историю сообщений ---
 	ListMessages(ctx context.Context, in *ListMessagesRequest, opts ...grpc.CallOption) (*Messages, error)
+	// --- Удалить чат (если владелец) ---
+	DeleteChat(ctx context.Context, in *DeleteChatRequest, opts ...grpc.CallOption) (*gen.Confirmation, error)
+	// 🔹 gRPC streaming для реального времени:
+	// Клиент подключается и слушает входящие сообщения (и может отправлять).
+	ChatStream(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ChatMessage, ChatMessage], error)
+	// 🔹 Подписка только на получение новых сообщений (например, если фронт слушает)
+	SubscribeMessages(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Message], error)
+	// 🔹 Отметить сообщение как прочитанное
+	MarkAsRead(ctx context.Context, in *MarkAsReadRequest, opts ...grpc.CallOption) (*gen.Confirmation, error)
 }
 
 type chatServiceClient struct {
@@ -100,20 +114,81 @@ func (c *chatServiceClient) ListMessages(ctx context.Context, in *ListMessagesRe
 	return out, nil
 }
 
+func (c *chatServiceClient) DeleteChat(ctx context.Context, in *DeleteChatRequest, opts ...grpc.CallOption) (*gen.Confirmation, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(gen.Confirmation)
+	err := c.cc.Invoke(ctx, ChatService_DeleteChat_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatServiceClient) ChatStream(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ChatMessage, ChatMessage], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &ChatService_ServiceDesc.Streams[0], ChatService_ChatStream_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[ChatMessage, ChatMessage]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type ChatService_ChatStreamClient = grpc.BidiStreamingClient[ChatMessage, ChatMessage]
+
+func (c *chatServiceClient) SubscribeMessages(ctx context.Context, in *SubscribeRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Message], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &ChatService_ServiceDesc.Streams[1], ChatService_SubscribeMessages_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[SubscribeRequest, Message]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type ChatService_SubscribeMessagesClient = grpc.ServerStreamingClient[Message]
+
+func (c *chatServiceClient) MarkAsRead(ctx context.Context, in *MarkAsReadRequest, opts ...grpc.CallOption) (*gen.Confirmation, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(gen.Confirmation)
+	err := c.cc.Invoke(ctx, ChatService_MarkAsRead_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ChatServiceServer is the server API for ChatService service.
 // All implementations must embed UnimplementedChatServiceServer
 // for forward compatibility.
 type ChatServiceServer interface {
-	// CreateChat → POST /api/v1/chats
+	// --- Создать чат (1-на-1 или групповой) ---
 	CreateChat(context.Context, *CreateChatRequest) (*Chat, error)
-	// GetChat → GET /api/v1/chats/{id}
+	// --- Получить чат по ID ---
 	GetChat(context.Context, *GetChatRequest) (*Chat, error)
-	// ListChats → GET /api/v1/chats
+	// --- Список чатов текущего пользователя ---
 	ListChats(context.Context, *EmptyRequest) (*Chats, error)
-	// SendMessage → POST /api/v1/chats/{chat_id}/messages
+	// --- Отправить сообщение ---
 	SendMessage(context.Context, *SendMessageRequest) (*Message, error)
-	// ListMessages → GET /api/v1/chats/{chat_id}/messages
+	// --- Получить историю сообщений ---
 	ListMessages(context.Context, *ListMessagesRequest) (*Messages, error)
+	// --- Удалить чат (если владелец) ---
+	DeleteChat(context.Context, *DeleteChatRequest) (*gen.Confirmation, error)
+	// 🔹 gRPC streaming для реального времени:
+	// Клиент подключается и слушает входящие сообщения (и может отправлять).
+	ChatStream(grpc.BidiStreamingServer[ChatMessage, ChatMessage]) error
+	// 🔹 Подписка только на получение новых сообщений (например, если фронт слушает)
+	SubscribeMessages(*SubscribeRequest, grpc.ServerStreamingServer[Message]) error
+	// 🔹 Отметить сообщение как прочитанное
+	MarkAsRead(context.Context, *MarkAsReadRequest) (*gen.Confirmation, error)
 	mustEmbedUnimplementedChatServiceServer()
 }
 
@@ -138,6 +213,18 @@ func (UnimplementedChatServiceServer) SendMessage(context.Context, *SendMessageR
 }
 func (UnimplementedChatServiceServer) ListMessages(context.Context, *ListMessagesRequest) (*Messages, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListMessages not implemented")
+}
+func (UnimplementedChatServiceServer) DeleteChat(context.Context, *DeleteChatRequest) (*gen.Confirmation, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteChat not implemented")
+}
+func (UnimplementedChatServiceServer) ChatStream(grpc.BidiStreamingServer[ChatMessage, ChatMessage]) error {
+	return status.Errorf(codes.Unimplemented, "method ChatStream not implemented")
+}
+func (UnimplementedChatServiceServer) SubscribeMessages(*SubscribeRequest, grpc.ServerStreamingServer[Message]) error {
+	return status.Errorf(codes.Unimplemented, "method SubscribeMessages not implemented")
+}
+func (UnimplementedChatServiceServer) MarkAsRead(context.Context, *MarkAsReadRequest) (*gen.Confirmation, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MarkAsRead not implemented")
 }
 func (UnimplementedChatServiceServer) mustEmbedUnimplementedChatServiceServer() {}
 func (UnimplementedChatServiceServer) testEmbeddedByValue()                     {}
@@ -250,6 +337,60 @@ func _ChatService_ListMessages_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ChatService_DeleteChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteChatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServiceServer).DeleteChat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChatService_DeleteChat_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServiceServer).DeleteChat(ctx, req.(*DeleteChatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChatService_ChatStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ChatServiceServer).ChatStream(&grpc.GenericServerStream[ChatMessage, ChatMessage]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type ChatService_ChatStreamServer = grpc.BidiStreamingServer[ChatMessage, ChatMessage]
+
+func _ChatService_SubscribeMessages_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SubscribeRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChatServiceServer).SubscribeMessages(m, &grpc.GenericServerStream[SubscribeRequest, Message]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type ChatService_SubscribeMessagesServer = grpc.ServerStreamingServer[Message]
+
+func _ChatService_MarkAsRead_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MarkAsReadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServiceServer).MarkAsRead(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChatService_MarkAsRead_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServiceServer).MarkAsRead(ctx, req.(*MarkAsReadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ChatService_ServiceDesc is the grpc.ServiceDesc for ChatService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -277,7 +418,27 @@ var ChatService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "ListMessages",
 			Handler:    _ChatService_ListMessages_Handler,
 		},
+		{
+			MethodName: "DeleteChat",
+			Handler:    _ChatService_DeleteChat_Handler,
+		},
+		{
+			MethodName: "MarkAsRead",
+			Handler:    _ChatService_MarkAsRead_Handler,
+		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "ChatStream",
+			Handler:       _ChatService_ChatStream_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "SubscribeMessages",
+			Handler:       _ChatService_SubscribeMessages_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "chat.proto",
 }

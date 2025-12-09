@@ -7,45 +7,89 @@ option go_package = "socialnet/services/notification/gen;notificationpb";
 import "google/api/annotations.proto";
 import "auth.proto";
 
+// =============================
+//     Notification Service
+// =============================
 
 service NotificationService {
-  // ListNotifications → GET /api/v1/notifications
-  rpc ListNotifications(EmptyRequest) returns (Notifications) {
-    option (google.api.http) = { get: "/api/v1/notifications" };
+  // --- Получить список уведомлений пользователя ---
+  rpc ListNotifications(ListNotificationsRequest) returns (Notifications) {
+    option (google.api.http) = {
+      get: "/api/v1/notifications"
+    };
   }
 
-  // MarkAsRead → POST /api/v1/notifications/{id}/read
+  // --- Пометить уведомление как прочитанное ---
   rpc MarkAsRead(MarkAsReadRequest) returns (auth.Confirmation) {
-    option (google.api.http) = { post: "/api/v1/notifications/{id}/read" };
+    option (google.api.http) = {
+      post: "/api/v1/notifications/{id}/read"
+      body: "*"
+    };
   }
 
-  // DeleteNotification → DELETE /api/v1/notifications/{id}
-  rpc DeleteNotification(DeleteNotificationRequest) returns (auth.Confirmation) {
-    option (google.api.http) = { delete: "/api/v1/notifications/{id}" };
+  // --- Пометить ВСЕ уведомления как прочитанные ---
+  rpc MarkAllAsRead(EmptyRequest) returns (auth.Confirmation) {
+    option (google.api.http) = {
+      post: "/api/v1/notifications/read-all"
+    };
   }
+
+  // --- Удалить уведомление ---
+  rpc DeleteNotification(DeleteNotificationRequest) returns (auth.Confirmation) {
+    option (google.api.http) = {
+      delete: "/api/v1/notifications/{id}"
+    };
+  }
+
+  // --- Удалить все уведомления ---
+  rpc ClearAll(EmptyRequest) returns (auth.Confirmation) {
+    option (google.api.http) = {
+      delete: "/api/v1/notifications/clear"
+    };
+  }
+
+  // --- Поток уведомлений в реальном времени (через gRPC stream) ---
+  rpc StreamNotifications(StreamRequest) returns (stream Notification);
 }
 
-// ---- Models ----
+// =============================
+//         Models
+// =============================
+
 message Notification {
   string id = 1;
   string user_id = 2;
-  string type = 3;
-  string content = 4;
-  bool read = 5;
-  string created_at = 6;
+  string type = 3;        // like, comment, follow, message, system
+  string reference_id = 4; // ID поста, пользователя или сообщения
+  string content = 5;     // Текст уведомления
+  bool read = 6;
+  string created_at = 7;
 }
 
 message Notifications {
   repeated Notification notifications = 1;
 }
 
-// ---- Requests ----
+// =============================
+//         Requests
+// =============================
+
 message EmptyRequest {}
 
+message ListNotificationsRequest {
+  string filter = 1; // optional: "unread", "all", "system"
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
 message MarkAsReadRequest {
-  string id = 1; // совпадает с {id}
+  string id = 1;
 }
 
 message DeleteNotificationRequest {
-  string id = 1; // совпадает с {id}
+  string id = 1;
+}
+
+message StreamRequest {
+  string user_id = 1; // используется при подключении к стриму
 }

@@ -5,40 +5,95 @@ package chat;
 option go_package = "socialnet/services/chat/gen;chatpb";
 
 import "google/api/annotations.proto";
+import "auth.proto";
+
+// ==========================
+//  Chat Service Definition
+// ==========================
 
 service ChatService {
-  // CreateChat → POST /api/v1/chats
+  // --- Создать чат (1-на-1 или групповой) ---
   rpc CreateChat(CreateChatRequest) returns (Chat) {
-    option (google.api.http) = { post: "/api/v1/chats" body: "*" };
+    option (google.api.http) = {
+      post: "/api/v1/chats"
+      body: "*"
+    };
   }
 
-  // GetChat → GET /api/v1/chats/{id}
+  // --- Получить чат по ID ---
   rpc GetChat(GetChatRequest) returns (Chat) {
-    option (google.api.http) = { get: "/api/v1/chats/{id}" };
+    option (google.api.http) = {
+      get: "/api/v1/chats/{id}"
+    };
   }
 
-  // ListChats → GET /api/v1/chats
+  // --- Список чатов текущего пользователя ---
   rpc ListChats(EmptyRequest) returns (Chats) {
-    option (google.api.http) = { get: "/api/v1/chats" };
+    option (google.api.http) = {
+      get: "/api/v1/chats"
+    };
   }
 
-  // SendMessage → POST /api/v1/chats/{chat_id}/messages
+  // --- Отправить сообщение ---
   rpc SendMessage(SendMessageRequest) returns (Message) {
-    option (google.api.http) = { post: "/api/v1/chats/{chat_id}/messages" body: "*" };
+    option (google.api.http) = {
+      post: "/api/v1/chats/{chat_id}/messages"
+      body: "*"
+    };
   }
 
-  // ListMessages → GET /api/v1/chats/{chat_id}/messages
+  // --- Получить историю сообщений ---
   rpc ListMessages(ListMessagesRequest) returns (Messages) {
-    option (google.api.http) = { get: "/api/v1/chats/{chat_id}/messages" };
+    option (google.api.http) = {
+      get: "/api/v1/chats/{chat_id}/messages"
+    };
+  }
+
+  // --- Удалить чат (если владелец) ---
+  rpc DeleteChat(DeleteChatRequest) returns (auth.Confirmation) {
+    option (google.api.http) = {
+      delete: "/api/v1/chats/{id}"
+    };
+  }
+
+  // ===========================
+  //  Реальное время (стрим)
+  // ===========================
+
+  // 🔹 gRPC streaming для реального времени:
+  // Клиент подключается и слушает входящие сообщения (и может отправлять).
+  rpc ChatStream(stream ChatMessage) returns (stream ChatMessage);
+
+  // 🔹 Подписка только на получение новых сообщений (например, если фронт слушает)
+  rpc SubscribeMessages(SubscribeRequest) returns (stream Message);
+
+  // 🔹 Отметить сообщение как прочитанное
+  rpc MarkAsRead(MarkAsReadRequest) returns (auth.Confirmation) {
+    option (google.api.http) = {
+      post: "/api/v1/chats/{chat_id}/messages/{message_id}/read"
+      body: "*"
+    };
   }
 }
 
-// ---- Models ----
+// ==========================
+//  Models
+// ==========================
+
 message Chat {
   string id = 1;
-  repeated string participants = 2;
-  string created_at = 3;
-  string updated_at = 4;
+  string name = 2;                      // название (если групповой чат)
+  repeated string participants = 3;     // ID участников
+  string last_message = 4;
+  string last_sender_id = 5;
+  string last_message_time = 6;
+  bool is_group = 7;
+  string created_at = 8;
+  string updated_at = 9;
+}
+
+message Chats {
+  repeated Chat chats = 1;
 }
 
 message Message {
@@ -46,34 +101,65 @@ message Message {
   string chat_id = 2;
   string sender_id = 3;
   string content = 4;
-  string created_at = 5;
-  bool read = 6;
-}
-
-message Chats {
-  repeated Chat chats = 1;
+  string content_type = 5; // text, image, file
+  string media_url = 6;    // ссылка на файл (если есть)
+  string created_at = 7;
+  bool read = 8;
 }
 
 message Messages {
   repeated Message messages = 1;
 }
 
-// ---- Requests ----
+// ==========================
+// Requests
+// ==========================
+
 message CreateChatRequest {
-  repeated string participants = 1;
+  repeated string participants = 1; // ID пользователей
+  string name = 2;                  // если групповой чат
 }
 
 message GetChatRequest {
   string id = 1;
 }
 
+message DeleteChatRequest {
+  string id = 1;
+}
+
 message SendMessageRequest {
   string chat_id = 1;
   string content = 2;
+  string content_type = 3; // text, image, file
+  string media_url = 4;    // если передан файл
 }
 
 message ListMessagesRequest {
   string chat_id = 1;
+  int32 limit = 2;
+  int32 offset = 3;
 }
 
 message EmptyRequest {}
+
+message SubscribeRequest {
+  repeated string chat_ids = 1; // можно подписаться на несколько чатов
+}
+
+message MarkAsReadRequest {
+  string chat_id = 1;
+  string message_id = 2;
+}
+
+// ==========================
+//  Streaming Chat Message
+// ==========================
+
+message ChatMessage {
+  string chat_id = 1;
+  string sender_id = 2;
+  string content = 3;
+  string content_type = 4;
+  string created_at = 5;
+}

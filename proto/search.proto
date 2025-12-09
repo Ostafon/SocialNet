@@ -1,7 +1,6 @@
 syntax = "proto3";
 
 package search;
-
 option go_package = "socialnet/services/search/gen;searchpb";
 
 import "google/api/annotations.proto";
@@ -9,23 +8,32 @@ import "user.proto";
 import "post.proto";
 
 service SearchService {
-  // SearchUsers → GET /api/v1/search/users?q={query}
-  rpc SearchUsers(SearchUsersRequest) returns (SearchUsersResponse) {
-    option (google.api.http) = { get: "/api/v1/search/users" };
+  // 🔍 Поиск пользователей
+  rpc SearchUsers(SearchRequest) returns (SearchUsersResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/search/users"
+    };
   }
 
-  // SearchPosts → GET /api/v1/search/posts?q={query}
-  rpc SearchPosts(SearchPostsRequest) returns (SearchPostsResponse) {
-    option (google.api.http) = { get: "/api/v1/search/posts" };
+  // 🔍 Поиск постов
+  rpc SearchPosts(SearchRequest) returns (SearchPostsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/search/posts"
+    };
+  }
+
+  // 🔍 Универсальный поиск по всем (юзеры + посты)
+  rpc SearchAll(SearchRequest) returns (SearchAllResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/search"
+    };
   }
 }
 
 // ---- Requests ----
-message SearchUsersRequest {
-  string query = 1;
-}
-message SearchPostsRequest {
-  string query = 1;
+message SearchRequest {
+  string query = 1;   // поисковая строка
+  int32 limit = 2;    // лимит на количество результатов
 }
 
 // ---- Responses ----
@@ -35,4 +43,9 @@ message SearchUsersResponse {
 
 message SearchPostsResponse {
   repeated post.Post posts = 1;
+}
+
+message SearchAllResponse {
+  repeated user.User users = 1;
+  repeated post.Post posts = 2;
 }

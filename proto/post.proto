@@ -38,6 +38,12 @@ service PostService {
   rpc ListUserPosts(UserPostsRequest) returns (Posts) {
     option (google.api.http) = { get: "/api/v1/users/{id}/posts" };
   }
+
+  // Получить ленту (мои посты + посты друзей)
+  rpc GetFeed(GetFeedRequest) returns (Posts) {
+    option (google.api.http) = { get: "/api/v1/feed" };
+  }
+
 }
 
 //---Models---
@@ -62,6 +68,8 @@ message CreatePostRequest {
   bytes image = 2;
   string fileName = 3;
 }
+
+message GetFeedRequest {}
 
 message GetPostRequest {
   string id = 1;

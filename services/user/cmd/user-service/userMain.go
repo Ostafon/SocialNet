@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"socialnet/pkg/interceptor"
+	"socialnet/pkg/logger"
 	userpb "socialnet/services/user/gen"
 	"socialnet/services/user/internal/handlers"
 	"socialnet/services/user/internal/model"
@@ -20,6 +21,9 @@ func main() {
 	if dsn == "" {
 		dsn = "host=localhost user=postgres password=postgres dbname=userdb port=5432 sslmode=disable"
 	}
+
+	logger.Init("UserService")
+	defer logger.Sync()
 
 	// 🔹 Подключаемся к БД
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -44,7 +48,10 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(interceptor.ExtractUserInterceptor()),
+		grpc.ChainUnaryInterceptor(
+			interceptor.ExtractUserInterceptor(),
+			interceptor.LoggingInterceptor(),
+		),
 	)
 	userpb.RegisterUserServiceServer(grpcServer, userHandler)
 

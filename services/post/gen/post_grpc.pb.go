@@ -27,6 +27,7 @@ const (
 	PostService_DeletePost_FullMethodName    = "/post.PostService/DeletePost"
 	PostService_ListPosts_FullMethodName     = "/post.PostService/ListPosts"
 	PostService_ListUserPosts_FullMethodName = "/post.PostService/ListUserPosts"
+	PostService_GetFeed_FullMethodName       = "/post.PostService/GetFeed"
 )
 
 // PostServiceClient is the client API for PostService service.
@@ -45,6 +46,8 @@ type PostServiceClient interface {
 	ListPosts(ctx context.Context, in *gen1.EmptyRequest, opts ...grpc.CallOption) (*Posts, error)
 	// ListUserPosts → GET /api/v1/users/{id}/posts
 	ListUserPosts(ctx context.Context, in *UserPostsRequest, opts ...grpc.CallOption) (*Posts, error)
+	// Получить ленту (мои посты + посты друзей)
+	GetFeed(ctx context.Context, in *GetFeedRequest, opts ...grpc.CallOption) (*Posts, error)
 }
 
 type postServiceClient struct {
@@ -115,6 +118,16 @@ func (c *postServiceClient) ListUserPosts(ctx context.Context, in *UserPostsRequ
 	return out, nil
 }
 
+func (c *postServiceClient) GetFeed(ctx context.Context, in *GetFeedRequest, opts ...grpc.CallOption) (*Posts, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Posts)
+	err := c.cc.Invoke(ctx, PostService_GetFeed_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PostServiceServer is the server API for PostService service.
 // All implementations must embed UnimplementedPostServiceServer
 // for forward compatibility.
@@ -131,6 +144,8 @@ type PostServiceServer interface {
 	ListPosts(context.Context, *gen1.EmptyRequest) (*Posts, error)
 	// ListUserPosts → GET /api/v1/users/{id}/posts
 	ListUserPosts(context.Context, *UserPostsRequest) (*Posts, error)
+	// Получить ленту (мои посты + посты друзей)
+	GetFeed(context.Context, *GetFeedRequest) (*Posts, error)
 	mustEmbedUnimplementedPostServiceServer()
 }
 
@@ -158,6 +173,9 @@ func (UnimplementedPostServiceServer) ListPosts(context.Context, *gen1.EmptyRequ
 }
 func (UnimplementedPostServiceServer) ListUserPosts(context.Context, *UserPostsRequest) (*Posts, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListUserPosts not implemented")
+}
+func (UnimplementedPostServiceServer) GetFeed(context.Context, *GetFeedRequest) (*Posts, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFeed not implemented")
 }
 func (UnimplementedPostServiceServer) mustEmbedUnimplementedPostServiceServer() {}
 func (UnimplementedPostServiceServer) testEmbeddedByValue()                     {}
@@ -288,6 +306,24 @@ func _PostService_ListUserPosts_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PostService_GetFeed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFeedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostServiceServer).GetFeed(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostService_GetFeed_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostServiceServer).GetFeed(ctx, req.(*GetFeedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PostService_ServiceDesc is the grpc.ServiceDesc for PostService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -318,6 +354,10 @@ var PostService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListUserPosts",
 			Handler:    _PostService_ListUserPosts_Handler,
+		},
+		{
+			MethodName: "GetFeed",
+			Handler:    _PostService_GetFeed_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

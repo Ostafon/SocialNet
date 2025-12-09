@@ -19,6 +19,18 @@ func NewLikeService(repo *repos.LikeRepo) *LikeService {
 
 // POST LIKES
 func (s *LikeService) LikePost(ctx context.Context, userID, postID string) (*pb.LikePostResponse, error) {
+	exists, err := s.repo.HasUserLikedPost(userID, postID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to check like: %v", err)
+	}
+	if exists {
+		if err := s.repo.UnlikePost(userID, postID); err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to remove like: %v", err)
+		}
+		count, _ := s.repo.CountPostLikes(postID)
+		return &pb.LikePostResponse{Status: "unliked", LikesCount: int32(count)}, nil
+	}
+
 	if err := s.repo.LikePost(userID, postID); err != nil {
 		return nil, status.Errorf(codes.AlreadyExists, "post already liked or invalid: %v", err)
 	}
