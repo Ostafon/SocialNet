@@ -39,3 +39,7 @@ func (h *NotificationHandler) ClearAll(ctx context.Context, req *pb.EmptyRequest
 func (h *NotificationHandler) StreamNotifications(req *pb.StreamRequest, stream pb.NotificationService_StreamNotificationsServer) error {
 	return h.svc.StreamNotifications(req, stream)
 }
+
+func (h *NotificationHandler) CreateNotification(ctx context.Context, in *pb.CreateNotificationRequest) (*authpb.Confirmation, error) {
+	return h.svc.CreateNotification(ctx, in)
+}

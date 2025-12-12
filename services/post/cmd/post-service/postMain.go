@@ -24,19 +24,8 @@ func main() {
 	if dsn == "" {
 		dsn = "host=localhost user=postgres password=postgres dbname=postdb port=5432 sslmode=disable"
 	}
+
 	clients := &config.GRPCClients{}
-	commClient, err := clients.GetCommentClient(os.Getenv("COMMENT_SERVICE_ADDR"))
-	if err != nil {
-		log.Fatalf("error with comment Client %v", err)
-	}
-	likeClient, err := clients.GetLikeClient(os.Getenv("LIKE_SERVICE_ADDR"))
-	if err != nil {
-		log.Fatalf("error with like Client %v", err)
-	}
-	userClient, err := clients.GetUserClient(os.Getenv("USER_SERVICE_ADDR"))
-	if err != nil {
-		log.Fatalf("error with user Client %v", err)
-	}
 	defer clients.CloseAll()
 
 	logger.Init("PostService")
@@ -55,7 +44,7 @@ func main() {
 
 	// 🔹 Репозиторий, сервис, хендлер
 	repo := repos.NewPostRepo(db)
-	postService := service.NewPostService(repo, commClient, likeClient, userClient)
+	postService := service.NewPostService(repo, clients)
 	postHandler := handlers.NewPostHandler(postService)
 
 	// 🔹 gRPC сервер

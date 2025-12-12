@@ -1,9 +1,11 @@
 package main
 
 import (
+	"github.com/joho/godotenv"
 	"log"
 	"net"
 	"os"
+	"socialnet/pkg/config"
 	"socialnet/pkg/interceptor"
 	"socialnet/pkg/logger"
 	"socialnet/services/comment/internal/model"
@@ -19,6 +21,7 @@ import (
 )
 
 func main() {
+	err := godotenv.Load("services/user/cmd/comment-service/.env")
 	dsn := os.Getenv("COMMENT_DB")
 	if dsn == "" {
 		dsn = "host=localhost user=postgres password=postgres dbname=commentdb port=5432 sslmode=disable"
@@ -34,8 +37,11 @@ func main() {
 		log.Fatalf("migration failed: %v", err)
 	}
 
+	clients := &config.GRPCClients{}
+	defer clients.CloseAll()
+
 	repo := repos.NewCommentRepo(db)
-	service := service.NewCommentService(repo)
+	service := service.NewCommentService(repo, clients)
 	handler := handlers.NewCommentHandler(service)
 
 	grpcServer := grpc.NewServer(

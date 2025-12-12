@@ -2,22 +2,27 @@ package service
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"socialnet/pkg/config"
 	"socialnet/pkg/storage"
 	"socialnet/pkg/utils"
+	notificationpb "socialnet/services/notification/gen"
 	pb "socialnet/services/user/gen"
 	"socialnet/services/user/internal/model"
 	"socialnet/services/user/internal/repos"
 )
 
 type UserService struct {
-	repo *repos.UserRepo
+	repo    *repos.UserRepo
+	clients *config.GRPCClients
 }
 
-func NewUserService(r *repos.UserRepo) *UserService {
-	return &UserService{repo: r}
+func NewUserService(r *repos.UserRepo, clients *config.GRPCClients) *UserService {
+	return &UserService{repo: r, clients: clients}
 }
 
 func (s *UserService) GetUser(req *pb.GetUserRequest) (*model.User, error) {
@@ -76,7 +81,7 @@ func (s *UserService) UpdateAvatar(req *pb.UpdateAvatarRequest) (*pb.UpdateAvata
 	}, nil
 }
 
-func (s *UserService) FollowUser(followerID, followingID string) error {
+func (s *UserService) FollowUser(ctx context.Context, followerID, followingID string) error {
 
 	if followerID == followingID {
 		return fmt.Errorf("cannot follow yourself")
@@ -87,6 +92,21 @@ func (s *UserService) FollowUser(followerID, followingID string) error {
 	if err := s.repo.FollowByUserId(follower, following); err != nil {
 		return err
 	}
+
+	md := metadata.New(map[string]string{"user-id": followerID})
+	ctxWithUser := metadata.NewOutgoingContext(ctx, md)
+
+	notifClient, err := s.clients.GetNotifClient("localhost:50057")
+	if err == nil {
+		_, _ = notifClient.CreateNotification(ctxWithUser,
+			&notificationpb.CreateNotificationRequest{
+				UserId:      followingID,
+				Type:        "follow",
+				ReferenceId: followerID,
+				Content:     fmt.Sprintf("User %s followed you", followerID),
+			})
+	}
+
 	return nil
 }
 

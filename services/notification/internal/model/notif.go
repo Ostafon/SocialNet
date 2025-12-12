@@ -11,3 +11,12 @@ type Notification struct {
 	Read        bool `gorm:"default:false"`
 	CreatedAt   time.Time
 }
+
+type RedisNotification struct {
+	Id          string `json:"id"`
+	UserID      string `json:"user_id"`
+	Type        string `json:"type"`
+	ReferenceID string `json:"reference_id"`
+	Content     string `json:"content"`
+	CreatedAt   string `json:"created_at"`
+}

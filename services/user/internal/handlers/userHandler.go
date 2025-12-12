@@ -61,7 +61,7 @@ func (h *UserHandler) FollowUser(ctx context.Context, req *pb.FollowUserRequest)
 		return nil, status.Error(codes.Unauthenticated, "missing user id")
 	}
 	fmt.Println("GetProfile userId:", userId)
-	err := h.serv.FollowUser(userId, req.Id)
+	err := h.serv.FollowUser(ctx, userId, req.Id)
 	if err != nil {
 		return nil, err
 	}

@@ -15,7 +15,7 @@ import (
 	chatpb "socialnet/services/chat/gen"
 	commentpb "socialnet/services/comment/gen"
 	likepb "socialnet/services/like/gen"
-	notificationpb "socialnet/services/notification/gen"
+	notifpb "socialnet/services/notification/gen"
 	postpb "socialnet/services/post/gen"
 	searchpb "socialnet/services/search/gen"
 	userpb "socialnet/services/user/gen"
@@ -58,7 +58,7 @@ func main() {
 	if err := chatpb.RegisterChatServiceHandlerFromEndpoint(ctx, mux, "localhost:50056", opts); err != nil {
 		log.Fatalf("failed to register chat service: %v", err)
 	}
-	if err := notificationpb.RegisterNotificationServiceHandlerFromEndpoint(ctx, mux, "localhost:50057", opts); err != nil {
+	if err := notifpb.RegisterNotificationServiceHandlerFromEndpoint(ctx, mux, "localhost:50057", opts); err != nil {
 		log.Fatalf("failed to register notification service: %v", err)
 	}
 	if err := searchpb.RegisterSearchServiceHandlerFromEndpoint(ctx, mux, "localhost:50058", opts); err != nil {
@@ -68,7 +68,7 @@ func main() {
 	handler := midl.CorsMiddleware(midl.AuthMiddleware(mux))
 
 	log.Println("API Gateway listening on :8080")
-	if err := http.ListenAndServe(":8080", handler); err != nil {
+	if err := http.ListenAndServe("0.0.0.0:8080", handler); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
 }

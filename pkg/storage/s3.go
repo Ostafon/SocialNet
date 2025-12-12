@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/joho/godotenv"
 	"io"
-	"log"
 	"os"
 )
 
@@ -19,10 +18,6 @@ type S3Client struct {
 
 func NewS3Client() (*S3Client, error) {
 	err := godotenv.Load("services/user/cmd/user-service/.env")
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-	}
-
 	cfg, err := config.LoadDefaultConfig(context.TODO(),
 		config.WithRegion(os.Getenv("AWS_REGION")),
 	)

@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"socialnet/pkg/config"
 	"socialnet/pkg/interceptor"
 	"socialnet/pkg/logger"
 	userpb "socialnet/services/user/gen"
@@ -36,9 +37,12 @@ func main() {
 		log.Fatalf(" failed to migrate database: %v", err)
 	}
 
+	clients := &config.GRPCClients{}
+	defer clients.CloseAll()
+
 	// 🔹 Репозиторий, сервис, хендлер
 	repo := repos.NewUserRepo(db)
-	userService := service.NewUserService(repo)
+	userService := service.NewUserService(repo, clients)
 	userHandler := handlers.NewUserHandler(userService)
 
 	// 🔹 gRPC сервер

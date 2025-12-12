@@ -2,7 +2,11 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"socialnet/pkg/config"
 	"socialnet/pkg/utils"
+	notificationpb "socialnet/services/notification/gen"
+	postpb "socialnet/services/post/gen"
 	"time"
 
 	"google.golang.org/grpc/codes"
@@ -13,11 +17,12 @@ import (
 )
 
 type CommentService struct {
-	repo *repos.CommentRepo
+	repo    *repos.CommentRepo
+	clients *config.GRPCClients
 }
 
-func NewCommentService(repo *repos.CommentRepo) *CommentService {
-	return &CommentService{repo: repo}
+func NewCommentService(repo *repos.CommentRepo, cl *config.GRPCClients) *CommentService {
+	return &CommentService{repo: repo, clients: cl}
 }
 
 // Добавление комментария
@@ -31,7 +36,27 @@ func (s *CommentService) AddComment(ctx context.Context, userID string, req *pb.
 	if err := s.repo.AddComment(comment); err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to add comment: %v", err)
 	}
+
 	id := utils.UintToString(comment.ID)
+
+	postClient, err := s.clients.GetPostClient("localhost:50053")
+	if err == nil {
+		postResp, err := postClient.GetPost(ctx, &postpb.GetPostRequest{Id: req.PostId})
+		if err == nil {
+			postOwnerID := postResp.UserId
+
+			notif, err := s.clients.GetNotifClient("localhost:50057")
+			if err == nil {
+				_, _ = notif.CreateNotification(ctx, &notificationpb.CreateNotificationRequest{
+					UserId:      postOwnerID,
+					Type:        "comment_created",
+					ReferenceId: id,
+					Content:     fmt.Sprintf("User %s commented on your post", userID),
+				})
+			}
+		}
+	}
+
 	return &pb.Comment{
 		Id:         id,
 		PostId:     comment.PostID,

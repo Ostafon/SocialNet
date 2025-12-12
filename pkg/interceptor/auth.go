@@ -19,6 +19,9 @@ func ExtractUserInterceptor() grpc.UnaryServerInterceptor {
 			if ids := md.Get("user-id"); len(ids) > 0 {
 				ctx = context.WithValue(ctx, contextx.UserIDKey, ids[0])
 			}
+			if ids := md.Get("x-user-id"); len(ids) > 0 {
+				ctx = context.WithValue(ctx, contextx.UserIDKey, ids[0])
+			}
 			if names := md.Get("username"); len(names) > 0 {
 				ctx = context.WithValue(ctx, contextx.UsernameKey, names[0])
 			}

@@ -5,11 +5,16 @@ import (
 	"context"
 	"fmt"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"log"
+	"os"
+	"socialnet/pkg/config"
 	"socialnet/pkg/contextx"
 	"socialnet/pkg/storage"
 	commentpb "socialnet/services/comment/gen"
 	likepb "socialnet/services/like/gen"
+	notificationpb "socialnet/services/notification/gen"
 	pb "socialnet/services/post/gen"
 	"socialnet/services/post/internal/model"
 	"socialnet/services/post/internal/repos"
@@ -17,15 +22,12 @@ import (
 )
 
 type PostService struct {
-	repo       *repos.PostRepo
-	commClient commentpb.CommentServiceClient
-	likeClient likepb.LikeServiceClient
-	userClient userpb.UserServiceClient
+	repo    *repos.PostRepo
+	clients *config.GRPCClients
 }
 
-func NewPostService(repo *repos.PostRepo, commClient commentpb.CommentServiceClient,
-	likeClient likepb.LikeServiceClient, userClient userpb.UserServiceClient) *PostService {
-	return &PostService{repo: repo, commClient: commClient, likeClient: likeClient, userClient: userClient}
+func NewPostService(repo *repos.PostRepo, clients *config.GRPCClients) *PostService {
+	return &PostService{repo: repo, clients: clients}
 }
 
 func (s *PostService) CreatePost(ctx context.Context, req *pb.CreatePostRequest) (*pb.Post, error) {
@@ -63,6 +65,22 @@ func (s *PostService) CreatePost(ctx context.Context, req *pb.CreatePostRequest)
 		return nil, err
 	}
 
+	notifClient, err := s.clients.GetNotifClient("localhost:50057")
+	if err == nil {
+
+		md := metadata.New(map[string]string{"user-id": userID})
+		ctxWithUser := metadata.NewOutgoingContext(ctx, md)
+
+		// уведомление самому юзеру — пост создан
+		_, _ = notifClient.CreateNotification(ctxWithUser,
+			&notificationpb.CreateNotificationRequest{
+				UserId:      userID,
+				Type:        "post_created",
+				ReferenceId: fmt.Sprint(post.ID),
+				Content:     "Your post has been published",
+			})
+	}
+
 	return &pb.Post{
 		Id:            fmt.Sprint(post.ID),
 		UserId:        post.UserId,
@@ -79,9 +97,17 @@ func (s *PostService) GetPost(ctx context.Context, req *pb.GetPostRequest) (*pb.
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "post not found: %v", err)
 	}
+	commClient, err := s.clients.GetCommentClient(os.Getenv("COMMENT_SERVICE_ADDR"))
+	if err != nil {
+		log.Fatalf("error with comment Client %v", err)
+	}
+	likeClient, err := s.clients.GetLikeClient(os.Getenv("LIKE_SERVICE_ADDR"))
+	if err != nil {
+		log.Fatalf("error with like Client %v", err)
+	}
 
 	// 🔹 Получаем количество лайков
-	likesResp, err := s.likeClient.LikePost(ctx, &likepb.LikePostRequest{
+	likesResp, err := likeClient.LikePost(ctx, &likepb.LikePostRequest{
 		Id: req.Id,
 	})
 	if err == nil {
@@ -89,7 +115,7 @@ func (s *PostService) GetPost(ctx context.Context, req *pb.GetPostRequest) (*pb.
 	}
 
 	// 🔹 Получаем количество комментариев
-	commentsResp, err := s.commClient.ListComments(ctx, &commentpb.ListCommentsRequest{
+	commentsResp, err := commClient.ListComments(ctx, &commentpb.ListCommentsRequest{
 		PostId: req.Id,
 	})
 	if err == nil {
@@ -135,13 +161,21 @@ func (s *PostService) ListUserPosts(ctx context.Context, req *pb.UserPostsReques
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to load user posts: %v", err)
 	}
+	commClient, err := s.clients.GetCommentClient(os.Getenv("COMMENT_SERVICE_ADDR"))
+	if err != nil {
+		log.Fatalf("error with comment Client %v", err)
+	}
+	likeClient, err := s.clients.GetLikeClient(os.Getenv("LIKE_SERVICE_ADDR"))
+	if err != nil {
+		log.Fatalf("error with like Client %v", err)
+	}
 
 	var pbPosts []*pb.Post
 	for _, p := range posts {
-		likesResp, _ := s.likeClient.LikePost(ctx, &likepb.LikePostRequest{
+		likesResp, _ := likeClient.LikePost(ctx, &likepb.LikePostRequest{
 			Id: fmt.Sprint(p.ID),
 		})
-		commentsResp, _ := s.commClient.ListComments(ctx, &commentpb.ListCommentsRequest{
+		commentsResp, _ := commClient.ListComments(ctx, &commentpb.ListCommentsRequest{
 			PostId: fmt.Sprint(p.ID),
 		})
 
@@ -186,7 +220,12 @@ func (s *PostService) GetFeed(ctx context.Context, req *pb.GetFeedRequest) (*pb.
 		return nil, status.Error(codes.Unauthenticated, "missing user id")
 	}
 
-	followingResp, err := s.userClient.GetFollowing(ctx, &userpb.GetFollowingRequest{
+	userClient, err := s.clients.GetUserClient(os.Getenv("USER_SERVICE_ADDR"))
+	if err != nil {
+		log.Fatalf("error with user Client %v", err)
+	}
+
+	followingResp, err := userClient.GetFollowing(ctx, &userpb.GetFollowingRequest{
 		Id: userID,
 	})
 	if err != nil {

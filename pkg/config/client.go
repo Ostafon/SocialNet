@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	notificationpb "socialnet/services/notification/gen"
 	"sync"
 
 	"google.golang.org/grpc"
@@ -20,11 +21,13 @@ type GRPCClients struct {
 	commentConn *grpc.ClientConn
 	userConn    *grpc.ClientConn
 	postConn    *grpc.ClientConn
+	notifConn   *grpc.ClientConn
 
 	LikeClient    likepb.LikeServiceClient
 	CommentClient commentpb.CommentServiceClient
 	UserClient    userpb.UserServiceClient
 	PostClient    postpb.PostServiceClient
+	NotifClient   notificationpb.NotificationServiceClient
 }
 
 // 🔹 Универсальная функция подключения
@@ -100,6 +103,22 @@ func (c *GRPCClients) GetPostClient(addr string) (postpb.PostServiceClient, erro
 	return c.PostClient, nil
 }
 
+// 🔹 Ленивое подключение к NotifService
+func (c *GRPCClients) GetNotifClient(addr string) (notificationpb.NotificationServiceClient, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.NotifClient == nil {
+		conn, err := dial(addr)
+		if err != nil {
+			return nil, err
+		}
+		c.notifConn = conn
+		c.NotifClient = notificationpb.NewNotificationServiceClient(conn)
+	}
+	return c.NotifClient, nil
+}
+
 // 🔹 Закрыть все соединения (при завершении приложения)
 func (c *GRPCClients) CloseAll() {
 	if c.likeConn != nil {
@@ -113,5 +132,8 @@ func (c *GRPCClients) CloseAll() {
 	}
 	if c.postConn != nil {
 		c.postConn.Close()
+	}
+	if c.notifConn != nil {
+		c.notifConn.Close()
 	}
 }

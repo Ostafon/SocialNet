@@ -4,6 +4,7 @@ package notification;
 
 option go_package = "socialnet/services/notification/gen;notificationpb";
 
+
 import "google/api/annotations.proto";
 import "auth.proto";
 
@@ -47,6 +48,15 @@ service NotificationService {
       delete: "/api/v1/notifications/clear"
     };
   }
+
+  rpc CreateNotification(CreateNotificationRequest) returns (auth.Confirmation) {
+    option (google.api.http) = {
+      post: "/api/v1/notifications/create"
+      body: "*"
+    };
+  }
+
+
 
   // --- Поток уведомлений в реальном времени (через gRPC stream) ---
   rpc StreamNotifications(StreamRequest) returns (stream Notification);
@@ -92,4 +102,11 @@ message DeleteNotificationRequest {
 
 message StreamRequest {
   string user_id = 1; // используется при подключении к стриму
+}
+
+message CreateNotificationRequest {
+  string user_id = 1;
+  string type = 2;
+  string reference_id = 3;
+  string content = 4;
 }

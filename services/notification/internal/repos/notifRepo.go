@@ -19,11 +19,21 @@ func (r *NotificationRepo) Save(n *model.Notification) error {
 
 func (r *NotificationRepo) List(userID, filter string, limit, offset int) ([]model.Notification, error) {
 	query := r.DB.Where("user_id = ?", userID)
+
 	if filter == "unread" {
 		query = query.Where("read = ?", false)
 	}
+
+	if limit == 0 {
+		limit = -1
+	}
+
 	var notifications []model.Notification
-	err := query.Order("created_at DESC").Limit(limit).Offset(offset).Find(&notifications).Error
+	err := query.Order("created_at DESC").
+		Limit(limit).
+		Offset(offset).
+		Find(&notifications).Error
+
 	return notifications, err
 }
 

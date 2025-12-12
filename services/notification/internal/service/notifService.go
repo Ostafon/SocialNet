@@ -7,6 +7,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"log"
 	"socialnet/pkg/contextx"
 	authpb "socialnet/services/auth/gen"
 	pb "socialnet/services/notification/gen"
@@ -24,7 +25,7 @@ func NewNotificationService(repo *repos.NotificationRepo, redis *redis.Client) *
 	return &NotificationService{repo: repo, redis: redis}
 }
 
-// 📩 Получить список уведомлений
+// ListNotifications  Получить список уведомлений
 func (s *NotificationService) ListNotifications(ctx context.Context, req *pb.ListNotificationsRequest) (*pb.Notifications, error) {
 	userID := contextx.GetUserID(ctx)
 	if userID == "" {
@@ -86,21 +87,90 @@ func (s *NotificationService) ClearAll(ctx context.Context, _ *pb.EmptyRequest) 
 	return &authpb.Confirmation{Status: "Cleared all"}, nil
 }
 
+func (s *NotificationService) CreateNotification(ctx context.Context, req *pb.CreateNotificationRequest) (*authpb.Confirmation, error) {
+	if req.UserId == "" {
+		return nil, status.Error(codes.InvalidArgument, "user_id required")
+	}
+
+	n := &model.Notification{
+		UserID:      req.UserId,
+		Type:        req.Type,
+		ReferenceID: req.ReferenceId,
+		Content:     req.Content,
+		Read:        false,
+		CreatedAt:   time.Now(),
+	}
+
+	// сохраняем в БД
+	if err := s.repo.Save(n); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to save notification: %v", err)
+	}
+
+	// отправляем в реальном времени
+	s.PublishNotification(ctx, n)
+
+	return &authpb.Confirmation{Status: "Notification created"}, nil
+}
+
 // 🔔 Поток уведомлений в реальном времени (через Redis Pub/Sub)
-func (s *NotificationService) StreamNotifications(req *pb.StreamRequest, stream pb.NotificationService_StreamNotificationsServer) error {
+func (s *NotificationService) StreamNotifications(
+	req *pb.StreamRequest,
+	stream pb.NotificationService_StreamNotificationsServer,
+) error {
+
 	ctx := stream.Context()
-	pubsub := s.redis.Subscribe(ctx, fmt.Sprintf("notifications:%s", req.UserId))
+	userID := req.UserId
+
+	log.Printf("🔵 [STREAM-START] User %s connected to notifications stream", userID)
+
+	// Подписываемся на Redis канал
+	channel := fmt.Sprintf("notifications:%s", userID)
+	pubsub := s.redis.Subscribe(ctx, channel)
 	defer pubsub.Close()
 
+	log.Printf("🔵 [REDIS] Subscribed to channel: %s", channel)
+
 	ch := pubsub.Channel()
+
 	for {
 		select {
 		case <-ctx.Done():
+			log.Printf("🟡 [STREAM-END] User %s disconnected", userID)
 			return nil
-		case msg := <-ch:
-			var notif pb.Notification
-			if err := json.Unmarshal([]byte(msg.Payload), &notif); err == nil {
-				_ = stream.Send(&notif)
+
+		case msg, ok := <-ch:
+			if !ok {
+				log.Printf("🔴 [ERROR] Redis channel closed for user %s", userID)
+				return nil
+			}
+
+			log.Printf("🔥 [REDIS → SERVICE] Raw message for %s: %s", userID, msg.Payload)
+
+			// 1️⃣ Парсим JSON в map
+			var raw model.RedisNotification
+
+			if err := json.Unmarshal([]byte(msg.Payload), &raw); err != nil {
+				log.Printf("❌ Failed to unmarshal JSON: %v", err)
+				continue
+			}
+
+			// 2️⃣ Создаём правильный protobuf объект вручную
+			notif := &pb.Notification{
+				Id:          raw.Id,
+				UserId:      raw.UserID,
+				Type:        raw.Type,
+				ReferenceId: raw.ReferenceID,
+				Content:     raw.Content,
+				Read:        false,
+				CreatedAt:   raw.CreatedAt,
+			}
+
+			log.Printf("📤 [STREAM → CLIENT] Sending notification to user %s: %+v", userID, notif)
+
+			// 3️⃣ Отправляем как protobuf-байты → ЭТО ВАЖНО!
+			if err := stream.Send(notif); err != nil {
+				log.Printf("❌ [STREAM-ERROR] Failed send to %s: %v", userID, err)
+				return err
 			}
 		}
 	}

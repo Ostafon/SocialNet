@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"socialnet/pkg/config"
 	"socialnet/pkg/interceptor"
 	"socialnet/pkg/logger"
 	"socialnet/services/like/internal/model"
@@ -32,13 +33,17 @@ func main() {
 		log.Fatalf("failed to connect to DB: %v", err)
 	}
 
+	clients := &config.GRPCClients{}
+
+	defer clients.CloseAll()
+
 	if err := db.AutoMigrate(&model.Like{}); err != nil {
 		log.Fatalf("migration failed: %v", err)
 	}
 
 	repo := repos.NewLikeRepo(db)
-	service := service.NewLikeService(repo)
-	handler := handlers.NewLikeHandler(service)
+	serv := service.NewLikeService(repo, clients)
+	handler := handlers.NewLikeHandler(serv)
 
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(

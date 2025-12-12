@@ -64,6 +64,7 @@ func main() {
 	pb.RegisterNotificationServiceServer(grpcServer, handler)
 
 	log.Println("🚀 NotificationService started on", port)
+	go StartGrpcWebWrapper(grpcServer)
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("❌ failed to serve: %v", err)
 	}

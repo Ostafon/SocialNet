@@ -2,19 +2,25 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"socialnet/pkg/config"
 	"socialnet/pkg/utils"
 	pb "socialnet/services/like/gen"
 	"socialnet/services/like/internal/repos"
+	notificationpb "socialnet/services/notification/gen"
+	postpb "socialnet/services/post/gen"
 )
 
 type LikeService struct {
-	repo *repos.LikeRepo
+	repo    *repos.LikeRepo
+	clients *config.GRPCClients
 }
 
-func NewLikeService(repo *repos.LikeRepo) *LikeService {
-	return &LikeService{repo: repo}
+func NewLikeService(repo *repos.LikeRepo, cl *config.GRPCClients) *LikeService {
+	return &LikeService{repo: repo, clients: cl}
 }
 
 // POST LIKES
@@ -33,6 +39,27 @@ func (s *LikeService) LikePost(ctx context.Context, userID, postID string) (*pb.
 
 	if err := s.repo.LikePost(userID, postID); err != nil {
 		return nil, status.Errorf(codes.AlreadyExists, "post already liked or invalid: %v", err)
+	}
+	postClient, err := s.clients.GetPostClient("localhost:50053")
+	if err == nil {
+		postResp, err := postClient.GetPost(ctx, &postpb.GetPostRequest{Id: postID})
+		if err == nil {
+			postOwnerID := postResp.UserId
+			notifClient, err := s.clients.GetNotifClient("localhost:50057")
+			if err == nil {
+
+				md := metadata.New(map[string]string{"user-id": userID})
+				ctxWithUser := metadata.NewOutgoingContext(ctx, md)
+
+				_, _ = notifClient.CreateNotification(ctxWithUser,
+					&notificationpb.CreateNotificationRequest{
+						UserId:      postOwnerID,
+						Type:        "post_liked",
+						ReferenceId: postID,
+						Content:     fmt.Sprintf("Your post was liked by %s", userID),
+					})
+			}
+		}
 	}
 
 	count, _ := s.repo.CountPostLikes(postID)

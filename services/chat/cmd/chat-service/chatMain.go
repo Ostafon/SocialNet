@@ -10,6 +10,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"socialnet/pkg/config"
 	"socialnet/pkg/interceptor"
 	"socialnet/pkg/logger"
 	pb "socialnet/services/chat/gen"
@@ -49,9 +50,12 @@ func main() {
 	}
 	log.Println("✅ Connected to Redis")
 
+	clients := &config.GRPCClients{}
+	defer clients.CloseAll()
+
 	// Инициализация слоёв
 	repo := repos.NewChatRepo(db)
-	svc := service.NewChatService(repo, rdb)
+	svc := service.NewChatService(repo, rdb, clients)
 	handler := handlers.NewChatHandler(svc)
 
 	// Запуск gRPC сервера
@@ -66,6 +70,7 @@ func main() {
 			interceptor.LoggingInterceptor(),
 		),
 	)
+	go ChatGrpcWebWrapper(grpcServer)
 
 	pb.RegisterChatServiceServer(grpcServer, handler)
 	log.Println("🚀 ChatService started on", port)
