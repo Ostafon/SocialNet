@@ -3,6 +3,7 @@ module socialnet/services/chat
 go 1.24.3
 
 require (
+	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	authpb "socialnet/services/auth/gen"
 	pb "socialnet/services/chat/gen"
 	"socialnet/services/chat/internal/service"
 )
@@ -33,4 +34,16 @@ func (h *ChatHandler) SubscribeMessages(req *pb.SubscribeRequest, stream pb.Chat
 
 func (h *ChatHandler) ListChats(ctx context.Context, req *pb.EmptyRequest) (*pb.Chats, error) {
 	return h.s.ListChats(ctx, req)
+}
+
+func (h *ChatHandler) GetChat(ctx context.Context, req *pb.GetChatRequest) (*pb.Chat, error) {
+	return h.s.GetChat(ctx, req)
+}
+
+func (h *ChatHandler) DeleteChat(ctx context.Context, req *pb.DeleteChatRequest) (*authpb.Confirmation, error) {
+	return h.s.DeleteChat(ctx, req)
+}
+
+func (h *ChatHandler) MarkAsRead(ctx context.Context, req *pb.MarkAsReadRequest) (*authpb.Confirmation, error) {
+	return h.s.MarkAsRead(ctx, req)
 }

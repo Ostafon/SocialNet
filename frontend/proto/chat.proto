@@ -1,0 +1,116 @@
+syntax = "proto3";
+
+package chat;
+
+// =====================================================
+// MODELS
+// =====================================================
+
+message Chat {
+  string id = 1;
+  string name = 2;
+  repeated string participants = 3;
+
+  string last_message = 4;
+  string last_sender_id = 5;
+  string last_message_time = 6;
+
+  bool is_group = 7;
+
+  string created_at = 8;
+  string updated_at = 9;
+}
+
+message Chats {
+  repeated Chat chats = 1;
+}
+
+message Message {
+  string id = 1;
+  string chat_id = 2;
+  string sender_id = 3;
+
+  string content = 4;
+  string content_type = 5;
+  string media_url = 6;
+
+  string created_at = 7;
+  bool read = 8;
+}
+
+message Messages {
+  repeated Message messages = 1;
+}
+
+// =====================================================
+// REQUESTS
+// =====================================================
+
+message CreateChatRequest {
+  repeated string participants = 1;
+  string name = 2;
+}
+
+message GetChatRequest {
+  string id = 1;
+}
+
+message DeleteChatRequest {
+  string id = 1;
+}
+
+message SendMessageRequest {
+  string chat_id = 1;
+  string content = 2;
+  string content_type = 3;
+  string media_url = 4;
+}
+
+message ListMessagesRequest {
+  string chat_id = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message EmptyRequest {}
+
+message SubscribeRequest {
+  repeated string chat_ids = 1;
+}
+
+message MarkAsReadRequest {
+  string chat_id = 1;
+  string message_id = 2;
+}
+
+// =====================================================
+// STREAMING STRUCTURE
+// =====================================================
+// grpc-web supports ONLY server streaming
+
+message ChatMessage {
+  string chat_id = 1;
+  string sender_id = 2;
+  string content = 3;
+  string content_type = 4;
+  string created_at = 5;
+}
+
+// =====================================================
+// SERVICE — grpc-web compatible
+// =====================================================
+
+service ChatService {
+  rpc CreateChat(CreateChatRequest) returns (Chat);
+  rpc GetChat(GetChatRequest) returns (Chat);
+  rpc ListChats(EmptyRequest) returns (Chats);
+
+  rpc SendMessage(SendMessageRequest) returns (Message);
+  rpc ListMessages(ListMessagesRequest) returns (Messages);
+
+  rpc DeleteChat(DeleteChatRequest) returns (EmptyRequest);
+  rpc MarkAsRead(MarkAsReadRequest) returns (EmptyRequest);
+
+  // STREAMS — only server-side allowed
+  rpc SubscribeMessages(SubscribeRequest) returns (stream Message);
+}

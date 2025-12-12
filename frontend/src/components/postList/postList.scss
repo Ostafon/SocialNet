@@ -1,0 +1,16 @@
+.posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+
+  &__loading,
+  &__empty {
+    text-align: center;
+    color: #777;
+    font-size: 15px;
+    margin-top: 40px;
+  }
+}

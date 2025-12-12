@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+
+package notification;
+
+option go_package = "socialnet/services/notification/gen;notificationpb";
+
+import public "google/api/annotations.proto";
+import public "auth.proto";
+
+// =============================
+//     Notification Service
+// =============================
+
+service NotificationService {
+  rpc ListNotifications(ListNotificationsRequest) returns (Notifications) {
+    option (google.api.http) = {
+      get: "/api/v1/notifications"
+    };
+  }
+
+  rpc MarkAsRead(MarkAsReadRequest) returns (auth.Confirmation) {
+    option (google.api.http) = {
+      post: "/api/v1/notifications/{id}/read"
+      body: "*"
+    };
+  }
+
+  rpc MarkAllAsRead(EmptyRequest) returns (auth.Confirmation) {
+    option (google.api.http) = {
+      post: "/api/v1/notifications/read-all"
+    };
+  }
+
+  rpc DeleteNotification(DeleteNotificationRequest) returns (auth.Confirmation) {
+    option (google.api.http) = {
+      delete: "/api/v1/notifications/{id}"
+    };
+  }
+
+  rpc ClearAll(EmptyRequest) returns (auth.Confirmation) {
+    option (google.api.http) = {
+      delete: "/api/v1/notifications/clear"
+    };
+  }
+
+  rpc StreamNotifications(StreamRequest) returns (stream Notification);
+}
+
+// =============================
+//         Models
+// =============================
+
+message Notification {
+  string id = 1;
+  string user_id = 2;
+  string type = 3;
+  string reference_id = 4;
+  string content = 5;
+  bool read = 6;
+  string created_at = 7;
+}
+
+message Notifications {
+  repeated Notification notifications = 1;
+}
+
+// =============================
+//         Requests
+// =============================
+
+message EmptyRequest {}
+
+message ListNotificationsRequest {
+  string filter = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message MarkAsReadRequest {
+  string id = 1;
+}
+
+message DeleteNotificationRequest {
+  string id = 1;
+}
+
+message StreamRequest {
+  string user_id = 1;
+}

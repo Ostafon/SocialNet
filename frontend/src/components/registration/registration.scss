@@ -1,0 +1,319 @@
+// ========================================
+// MODERN REGISTRATION STYLES
+// ========================================
+
+.registration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  &-container {
+    background-color: #fff;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    display: flex;
+    overflow: hidden;
+    max-width: 1100px;
+    width: 100%;
+    animation: fadeInUp 0.6s ease;
+  }
+
+  // Left Side - Branding
+  &__left {
+    flex: 1;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      top: -100px;
+      right: -100px;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      bottom: -50px;
+      left: -50px;
+    }
+  }
+
+  &__image {
+    width: 280px;
+    height: 280px;
+    object-fit: contain;
+    margin-bottom: 30px;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2));
+    animation: float 3s ease-in-out infinite;
+    z-index: 1;
+  }
+
+  &__brand {
+    text-align: center;
+    z-index: 1;
+
+    h1 {
+      font-size: 48px;
+      font-weight: 800;
+      margin: 0 0 10px;
+      text-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    p {
+      font-size: 18px;
+      opacity: 0.9;
+      margin: 0;
+    }
+  }
+
+  // Right Side - Form
+  &__right {
+    flex: 1;
+    padding: 60px 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__form-wrapper {
+    width: 100%;
+    max-width: 400px;
+  }
+
+  &__header {
+    margin-bottom: 40px;
+
+    h2 {
+      font-size: 32px;
+      font-weight: 700;
+      color: #2d3436;
+      margin: 0 0 10px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    p {
+      font-size: 16px;
+      color: #636e72;
+      margin: 0;
+    }
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  // Input Groups
+  .input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    .input-icon {
+      position: absolute;
+      left: 16px;
+      color: #b2bec3;
+      font-size: 18px;
+      z-index: 1;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 16px 14px 48px;
+      border: 2px solid #e1e8ed;
+      border-radius: 12px;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.3s ease;
+      background: #f8f9fa;
+
+      &:focus {
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+
+        ~ .input-icon {
+          color: #667eea;
+        }
+      }
+
+      &::placeholder {
+        color: #b2bec3;
+      }
+    }
+  }
+
+  &__button {
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    margin-top: 10px;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+}
+
+// Animations
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+// ========================================
+// RESPONSIVE DESIGN
+// ========================================
+
+@media screen and (max-width: 900px) {
+  .registration {
+    &-container {
+      flex-direction: column;
+      border-radius: 20px;
+    }
+
+    &__left {
+      padding: 40px 30px;
+    }
+
+    &__image {
+      width: 200px;
+      height: 200px;
+      margin-bottom: 20px;
+    }
+
+    &__brand {
+      h1 {
+        font-size: 36px;
+      }
+
+      p {
+        font-size: 16px;
+      }
+    }
+
+    &__right {
+      padding: 40px 30px;
+    }
+
+    &__header {
+      margin-bottom: 30px;
+
+      h2 {
+        font-size: 28px;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .registration {
+    padding: 15px;
+
+    &-container {
+      border-radius: 16px;
+    }
+
+    &__left {
+      padding: 30px 20px;
+    }
+
+    &__image {
+      width: 150px;
+      height: 150px;
+    }
+
+    &__brand {
+      h1 {
+        font-size: 28px;
+      }
+
+      p {
+        font-size: 14px;
+      }
+    }
+
+    &__right {
+      padding: 30px 20px;
+    }
+
+    &__form-wrapper {
+      max-width: 100%;
+    }
+
+    &__header {
+      h2 {
+        font-size: 24px;
+      }
+
+      p {
+        font-size: 14px;
+      }
+    }
+
+    .input-group input {
+      padding: 12px 14px 12px 44px;
+      font-size: 14px;
+    }
+
+    &__button {
+      padding: 12px;
+      font-size: 15px;
+    }
+  }
+}

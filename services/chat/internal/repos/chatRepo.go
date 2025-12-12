@@ -117,3 +117,41 @@ func (r *ChatRepo) FindPrivateChat(user1, user2 string) (*model.Chat, error) {
 
 	return &chat, err
 }
+
+func (r *ChatRepo) GetChatByID(chatID uint) (*model.Chat, error) {
+	var chat model.Chat
+	err := r.db.
+		Where("id = ?", chatID).
+		Preload("Participants").
+		First(&chat).Error
+	return &chat, err
+}
+
+func (r *ChatRepo) DeleteChat(chatID uint, userID string) error {
+	// Проверяем, что пользователь - участник
+	var count int64
+	r.db.Model(&model.Participant{}).
+		Where("chat_id = ? AND user_id = ?", chatID, userID).
+		Count(&count)
+
+	if count == 0 {
+		return errors.New("not a participant")
+	}
+
+	// Удаляем чат и все связанные данные
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("chat_id = ?", chatID).Delete(&model.Message{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("chat_id = ?", chatID).Delete(&model.Participant{}).Error; err != nil {
+			return err
+		}
+		return tx.Delete(&model.Chat{}, chatID).Error
+	})
+}
+
+func (r *ChatRepo) MarkMessageAsRead(messageID uint, userID string) error {
+	return r.db.Model(&model.Message{}).
+		Where("id = ?", messageID).
+		Update("read", true).Error
+}

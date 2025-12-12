@@ -11,6 +11,7 @@ import (
 	"log"
 	"socialnet/pkg/config"
 	"socialnet/pkg/contextx"
+	authpb "socialnet/services/auth/gen"
 	pb "socialnet/services/chat/gen"
 	"socialnet/services/chat/internal/model"
 	"socialnet/services/chat/internal/repos"
@@ -129,7 +130,11 @@ func (s *ChatService) SendMessage(ctx context.Context, req *pb.SendMessageReques
 	}
 
 	// Redis pubsub
-	data, _ := json.Marshal(event)
+	data, err := json.Marshal(event)
+	if err != nil {
+		log.Printf("❌ Failed to marshal message: %v", err)
+		return &event, nil // возвращаем без публикации
+	}
 	_ = s.redis.Publish(ctx, fmt.Sprintf("chat:%s", req.ChatId), data).Err()
 
 	// ==== УВЕДОМЛЕНИЕ ====
@@ -294,4 +299,90 @@ func (s *ChatService) ListChats(ctx context.Context, req *pb.EmptyRequest) (*pb.
 	}
 
 	return &pb.Chats{Chats: pbChats}, nil
+}
+
+func (s *ChatService) GetChat(ctx context.Context, req *pb.GetChatRequest) (*pb.Chat, error) {
+	userID := contextx.GetUserID(ctx)
+	if userID == "" {
+		return nil, status.Error(codes.Unauthenticated, "missing user id")
+	}
+
+	chatID := parseUint(req.Id)
+
+	// Проверяем, что пользователь является участником чата
+	participants, err := s.repo.GetChatParticipants(chatID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get chat: %v", err)
+	}
+
+	isParticipant := false
+	for _, p := range participants {
+		if p.UserID == userID {
+			isParticipant = true
+			break
+		}
+	}
+
+	if !isParticipant {
+		return nil, status.Error(codes.PermissionDenied, "not a participant")
+	}
+
+	// Получаем чат (нужно добавить метод в repo)
+	chat, err := s.repo.GetChatByID(chatID)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "chat not found: %v", err)
+	}
+
+	participantIDs := make([]string, 0, len(participants))
+	for _, p := range participants {
+		participantIDs = append(participantIDs, p.UserID)
+	}
+
+	lastMsg, _ := s.repo.GetLastMessage(chatID)
+	lastText := ""
+	if lastMsg != nil {
+		lastText = lastMsg.Content
+	}
+
+	return &pb.Chat{
+		Id:           fmt.Sprint(chat.ID),
+		Name:         chat.Name,
+		IsGroup:      chat.IsGroup,
+		Participants: participantIDs,
+		LastMessage:  lastText,
+		CreatedAt:    chat.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:    chat.UpdatedAt.Format(time.RFC3339),
+	}, nil
+}
+
+func (s *ChatService) DeleteChat(ctx context.Context, req *pb.DeleteChatRequest) (*authpb.Confirmation, error) {
+	userID := contextx.GetUserID(ctx)
+	if userID == "" {
+		return nil, status.Error(codes.Unauthenticated, "missing user id")
+	}
+
+	chatID := parseUint(req.Id)
+
+	// Проверяем права (нужно добавить метод в repo)
+	if err := s.repo.DeleteChat(chatID, userID); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to delete chat: %v", err)
+	}
+
+	return &authpb.Confirmation{Status: "Chat deleted"}, nil
+}
+
+func (s *ChatService) MarkAsRead(ctx context.Context, req *pb.MarkAsReadRequest) (*authpb.Confirmation, error) {
+	userID := contextx.GetUserID(ctx)
+	if userID == "" {
+		return nil, status.Error(codes.Unauthenticated, "missing user id")
+	}
+
+	messageID := parseUint(req.MessageId)
+
+	// Добавить метод в repo
+	if err := s.repo.MarkMessageAsRead(messageID, userID); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to mark as read: %v", err)
+	}
+
+	return &authpb.Confirmation{Status: "Message marked as read"}, nil
 }

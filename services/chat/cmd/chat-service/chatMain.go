@@ -70,10 +70,10 @@ func main() {
 			interceptor.LoggingInterceptor(),
 		),
 	)
-	go ChatGrpcWebWrapper(grpcServer)
 
 	pb.RegisterChatServiceServer(grpcServer, handler)
 	log.Println("🚀 ChatService started on", port)
+	go ChatGrpcWebWrapper(grpcServer)
 
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("❌ failed to serve: %v", err)

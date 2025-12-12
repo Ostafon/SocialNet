@@ -1,14 +1,187 @@
-version: "3.8"
+version: "3.9"
 
 services:
+  # ====================== POSTGRES (Одна общая БД) ======================
+  postgres:
+    image: postgres:15
+    container_name: socialnet_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - socialnet
+
+  # ====================== REDIS ======================
   redis:
     image: redis:7
     container_name: socialnet_redis
+    restart: always
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
+    networks:
+      - socialnet
+
+  # ====================== AUTH SERVICE ======================
+  auth:
+    build: ../services/auth/cmd/auth-service
+    container_name: auth_service
+    restart: on-failure
+    environment:
+      AUTH_BD: postgres://admin:admin@postgres:5432/authdb?sslmode=disable
+      JWT_SECRET: social_net_secret
+      JWT_EXPIRES_IN: 6000s
+      SMTP_HOST: smtp.gmail.com
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+    depends_on:
+      - postgres
+    ports:
+      - "50051:50051"
+    networks:
+      - socialnet
+
+  # ====================== USER SERVICE ======================
+  user:
+    build: ../services/user/cmd/user-service
+    container_name: user_service
+    restart: on-failure
+    environment:
+      USER_BD: postgres://admin:admin@postgres:5432/userdb?sslmode=disable
+    depends_on:
+      - postgres
+    ports:
+      - "50052:50052"
+    networks:
+      - socialnet
+
+  # ====================== POST SERVICE ======================
+  post:
+    build: ../services/post/cmd/post-service
+    container_name: post_service
+    restart: on-failure
+    environment:
+      POST_BD: postgres://admin:admin@postgres:5432/postdb?sslmode=disable
+      AWS_REGION: eu-north-1
+      AWS_BUCKET: socialnet-posts
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+    depends_on:
+      - postgres
+    ports:
+      - "50053:50053"
+    networks:
+      - socialnet
+
+  # ====================== COMMENT SERVICE ======================
+  comment:
+    build: ../services/comment/cmd/comment-service
+    container_name: comment_service
+    restart: on-failure
+    environment:
+      COMMENT_BD: postgres://admin:admin@postgres:5432/commentdb?sslmode=disable
+    depends_on:
+      - postgres
+    ports:
+      - "50054:50054"
+    networks:
+      - socialnet
+
+  # ====================== LIKE SERVICE ======================
+  like:
+    build: ../services/like/cmd/like-service
+    container_name: like_service
+    restart: on-failure
+    environment:
+      LIKE_BD: postgres://admin:admin@postgres:5432/likedb?sslmode=disable
+    depends_on:
+      - postgres
+    ports:
+      - "50055:50055"
+    networks:
+      - socialnet
+
+  # ====================== CHAT SERVICE + GRPC-WEB ======================
+  chat:
+    build: ../services/chat/cmd/chat-service
+    container_name: chat_service
+    restart: on-failure
+    environment:
+      CHAT_DB: postgres://admin:admin@postgres:5432/chatdb?sslmode=disable
+      REDIS_ADDR: redis:6379
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "50056:50056"
+      - "8082:8082"
+    networks:
+      - socialnet
+
+  # ====================== NOTIFICATION SERVICE ======================
+  notification:
+    build: ../services/notification/cmd/notif-service
+    container_name: notification_service
+    restart: on-failure
+    environment:
+      NOTIFICATION_DB: postgres://admin:admin@postgres:5432/notificationdb?sslmode=disable
+      REDIS_ADDR: redis:6379
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "50057:50057"
+    networks:
+      - socialnet
+
+  # ====================== SEARCH SERVICE ======================
+  search:
+    build: ../services/search/cmd/search-service
+    container_name: search_service
+    restart: on-failure
+    environment:
+      USER_SERVICE_ADDR: user:50052
+      POST_SERVICE_ADDR: post:50053
+    networks:
+      - socialnet
+
+  # ====================== API GATEWAY ======================
+  gateway:
+    build: ../api-gateway
+    container_name: api_gateway
+    restart: on-failure
+    depends_on:
+      - auth
+      - user
+      - post
+      - comment
+      - like
+      - chat
+      - notification
+      - search
+    ports:
+      - "8080:8080"
+    networks:
+      - socialnet
+
+  # ====================== FRONTEND ======================
+  frontend:
+    build: ../frontend
+    container_name: frontend_app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+    networks:
+      - socialnet
 
 volumes:
-  redis_data:
+  postgres_data:
+
+networks:
+  socialnet:

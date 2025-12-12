@@ -10,6 +10,8 @@ require (
 )
 
 require (
+ gorm.io/driver/postgres v1.6.0  // ← ДОБАВИТЬ
+    gorm.io/gorm v1.31.1  
 	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.28.0 // indirect

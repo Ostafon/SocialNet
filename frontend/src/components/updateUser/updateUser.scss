@@ -1,0 +1,365 @@
+// ========================================
+// MODERN UPDATE USER STYLES
+// ========================================
+
+.update-user-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.update-user-container {
+  max-width: 700px;
+  width: 100%;
+  background: white;
+  border-radius: 24px;
+  padding: 50px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: fadeInUp 0.6s ease;
+}
+
+.update-user-header {
+  text-align: center;
+  margin-bottom: 40px;
+
+  h1 {
+    font-size: 36px;
+    font-weight: 700;
+    margin: 0 0 10px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  p {
+    color: #636e72;
+    font-size: 16px;
+    margin: 0;
+  }
+}
+
+// Avatar Upload Section
+.avatar-upload-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.avatar-preview-wrapper {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.avatar-preview,
+.avatar-placeholder {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 5px solid white;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.avatar-placeholder {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.avatar-upload-label {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  width: 45px;
+  height: 45px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+  }
+}
+
+.avatar-hint {
+  color: #636e72;
+  font-size: 14px;
+  margin: 0;
+}
+
+// Form Styles
+.update-user-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .input-icon {
+    position: absolute;
+    left: 16px;
+    color: #b2bec3;
+    font-size: 18px;
+    z-index: 1;
+  }
+
+  input {
+    width: 100%;
+    padding: 14px 16px 14px 48px;
+    border: 2px solid #e1e8ed;
+    border-radius: 12px;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+
+    &:focus {
+      border-color: #667eea;
+      background: white;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+
+      ~ .input-icon {
+        color: #667eea;
+      }
+    }
+
+    &::placeholder {
+      color: #b2bec3;
+    }
+  }
+
+  // Date input special styling
+  &.date-input {
+    input {
+      color: #2d3436;
+      font-weight: 500;
+
+      &::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        filter: opacity(0.5);
+        transition: filter 0.3s ease;
+
+        &:hover {
+          filter: opacity(1);
+        }
+      }
+
+      &:focus::-webkit-calendar-picker-indicator {
+        filter: opacity(1);
+      }
+    }
+  }
+}
+
+// Social Networks Section
+.social-section {
+  margin-top: 30px;
+  padding-top: 30px;
+  border-top: 2px solid #e1e8ed;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 20px;
+  color: #2d3436;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  &::before {
+    content: '';
+    width: 4px;
+    height: 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 2px;
+  }
+}
+
+.social-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.social-input {
+  .input-icon.social-icon {
+    font-size: 20px;
+  }
+
+  input {
+    &:focus {
+      ~ .input-icon {
+        transform: scale(1.1);
+      }
+    }
+  }
+}
+
+// Social Icon Colors
+.social-icon {
+  &.facebook {
+    color: #1877f2;
+  }
+
+  &.instagram {
+    color: #e4405f;
+  }
+
+  &.twitter {
+    color: #1da1f2;
+  }
+
+  &.linkedin {
+    color: #0a66c2;
+  }
+
+  &.github {
+    color: #333;
+  }
+
+  &.telegram {
+    color: #0088cc;
+  }
+}
+
+.textarea-group {
+  textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #e1e8ed;
+    border-radius: 12px;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+    resize: vertical;
+    font-family: inherit;
+
+    &:focus {
+      border-color: #667eea;
+      background: white;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+
+    &::placeholder {
+      color: #b2bec3;
+    }
+  }
+}
+
+// Messages
+.message {
+  padding: 12px 16px;
+  border-radius: 12px;
+  text-align: center;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.error-message {
+  background: #ffe5e5;
+  color: #ff6b6b;
+  border: 1px solid #ff6b6b;
+}
+
+.success-message {
+  background: #d4edda;
+  color: #28a745;
+  border: 1px solid #28a745;
+}
+
+// Submit Button
+.submit-button {
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  margin-top: 10px;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// Animations
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .update-user-container {
+    padding: 30px 20px;
+  }
+
+  .update-user-header h1 {
+    font-size: 28px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .social-inputs {
+    grid-template-columns: 1fr;
+  }
+
+  .avatar-preview,
+  .avatar-placeholder {
+    width: 120px;
+    height: 120px;
+  }
+
+  .avatar-upload-label {
+    width: 40px;
+    height: 40px;
+  }
+}

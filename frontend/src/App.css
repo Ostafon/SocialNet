@@ -1,0 +1,34 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+/* Светлая тема */
+body.light {
+  background-color: #f5f6fa;
+  color: #000;
+}
+
+body.light .navbar {
+  background: linear-gradient(135deg, #74b9ff, #a29bfe);
+}
+
+body.light input {
+  background: #fff;
+  color: #000;
+}
+
+/* Тёмная тема */
+body.dark {
+  background-color: #121212;
+  color: #fff;
+}
+
+body.dark .navbar {
+  background: linear-gradient(135deg, #2d3436, #000000);
+}
+
+body.dark input {
+  background: #333;
+  color: #fff;
+}
