@@ -1,13 +1,13 @@
-name: Run Go Unit Tests
+name: Run Unit Tests
 
 on:
   push:
     branches: [ main ]
   pull_request:
-    branches: [ main ]
 
 jobs:
   test:
+    name: Run Go Tests
     runs-on: ubuntu-latest
 
     services:
@@ -23,28 +23,49 @@ jobs:
           --health-cmd="pg_isready -U ostafon"
           --health-interval=5s
           --health-timeout=5s
-          --health-retries=10
+          --health-retries=5
+
+    env:
+      PG_DSN: postgres://ostafon:0000@localhost:5432/test?sslmode=disable
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - name: Setup Go
+        uses: actions/setup-go@v4
         with:
-          go-version: '1.22'
+          go-version: 1.24.x
 
+      # 🔥 VERY IMPORTANT — your monorepo imports must work:
+      - name: Fix Go workspace
+        run: |
+          echo "go 1.24.3" > go.work
+          echo "use (" >> go.work
+          echo "./services/auth" >> go.work
+          echo "./services/chat" >> go.work
+          echo "./services/comment" >> go.work
+          echo "./services/like" >> go.work
+          echo "./services/notification" >> go.work
+          echo "./services/post" >> go.work
+          echo "./services/search" >> go.work
+          echo "./services/user" >> go.work
+          echo ". " >> go.work
+          echo "./api-gateway" >> go.work
+          echo ")" >> go.work
+
+      - name: Download dependencies
+        run: go mod download
+
+      # 🔥 WAIT FOR POSTGRES
       - name: Wait for PostgreSQL
         run: |
-          for i in {1..20}; do
-            nc -z localhost 5432 && echo "Postgres is up" && break
-            echo "Waiting for postgres..."
+          for i in {1..15}; do
+            pg_isready -h localhost -p 5432 -U ostafon && break
+            echo "Waiting for PostgreSQL..."
             sleep 2
           done
 
-      - name: Set env vars for tests
+      - name: Run Tests
         run: |
-          echo "DB_URL=postgres://ostafon:0000@localhost:5432/test?sslmode=disable" >> $GITHUB_ENV
-
-      - name: Run unit tests
-        run: go test ./... -v
+          PG_DSN=$PG_DSN go test ./... -v
