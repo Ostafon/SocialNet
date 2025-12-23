@@ -7,9 +7,10 @@ import (
 )
 
 func ErrorHandler(err error, message string) error {
-	errLogger := log.New(os.Stderr, "ERROR", log.Ldate|log.Ltime|log.Lshortfile)
+	errLogger := log.New(os.Stderr, "ERROR ", log.Ldate|log.Ltime|log.Lshortfile)
 	if err != nil {
 		errLogger.Println(message, err)
+		return fmt.Errorf("%s: %w", message, err)
 	}
-	return fmt.Errorf(message)
+	return nil
 }
