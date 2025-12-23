@@ -20,7 +20,7 @@ import (
 )
 
 func main() {
-	_ = godotenv.Load("services/notification/cmd/notif-service/.env")
+	_ = godotenv.Load("services/notification/cmd/notification-service/.env")
 
 	dsn := os.Getenv("NOTIFICATION_DB")
 	port := os.Getenv("NOTIFICATION_SERVICE_PORT")

@@ -1,0 +1,29 @@
+FROM golang:1.22 AS builder
+
+WORKDIR /app
+
+# 1. Копируем ВСЮ монорепу, чтобы работали replace и gen/
+COPY ../../ ./
+
+# 2. Выбираем сервис через аргумент
+ARG SERVICE
+WORKDIR /app/services/${SERVICE}
+
+# 3. Устанавливаем зависимости
+RUN go mod download
+
+# 4. Собираем бинарник
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/${SERVICE} ./cmd/${SERVICE}-service/
+
+# -------------------- RUNTIME --------------------
+FROM alpine:3.18
+
+WORKDIR /root/
+
+ARG SERVICE
+COPY --from=builder /app/bin/${SERVICE} .
+
+EXPOSE 8080
+EXPOSE 50051
+
+CMD ["./${SERVICE}"]

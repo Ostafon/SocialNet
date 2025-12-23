@@ -32,7 +32,7 @@ services/post/cmd/post-service/.env
 services/comment/cmd/comment-service/.env
 services/chat/cmd/chat-service/.env
 services/notification/cmd/notifications-service/.env
-
+deployments/.env
 # Editor/IDE
 # .idea/
 # .vscode/

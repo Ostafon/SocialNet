@@ -15,11 +15,11 @@ import (
 )
 
 type AuthService struct {
-	repo *repos.UserRepo
+	Repo *repos.UserRepo
 }
 
 func NewAuthService(repo *repos.UserRepo) *AuthService {
-	return &AuthService{repo: repo}
+	return &AuthService{Repo: repo}
 }
 
 func (s *AuthService) Register(req *pb.RegisterRequest) (string, string, error) {
@@ -48,7 +48,7 @@ func (s *AuthService) Register(req *pb.RegisterRequest) (string, string, error) 
 	}
 
 	// сохраняем в БД
-	userID, err := s.repo.RegisterDB(user)
+	userID, err := s.Repo.RegisterDB(user)
 	if err != nil {
 		return "", "", status.Error(codes.Internal, "db error")
 	}
@@ -66,7 +66,7 @@ func (s *AuthService) Register(req *pb.RegisterRequest) (string, string, error) 
 	}
 
 	// сохраняем refresh в БД
-	if err = s.repo.SaveToken(refreshToken, userID); err != nil {
+	if err = s.Repo.SaveToken(refreshToken, userID); err != nil {
 		return "", "", status.Error(codes.Internal, "db error")
 	}
 
@@ -78,7 +78,7 @@ func (s *AuthService) Login(req *pb.LoginRequest) (string, string, error) {
 	if err := utils2.ValidateStruct(req); err != nil {
 		return "", "", status.Error(codes.InvalidArgument, "required all fields")
 	}
-	user, err := s.repo.GetUserByEmail(req.Email)
+	user, err := s.Repo.GetUserByEmail(req.Email)
 	if err != nil {
 		return "", "", status.Error(codes.NotFound, "user not exists")
 	}
@@ -87,7 +87,7 @@ func (s *AuthService) Login(req *pb.LoginRequest) (string, string, error) {
 		return "", "", status.Error(codes.InvalidArgument, "email or password wrong")
 	}
 
-	refresh, err := s.repo.FindRefreshTokenById(user.ID)
+	refresh, err := s.Repo.FindRefreshTokenById(user.ID)
 	if err != nil {
 		return "", "", err
 	}
@@ -97,7 +97,7 @@ func (s *AuthService) Login(req *pb.LoginRequest) (string, string, error) {
 		if err != nil {
 			return "", "", status.Error(codes.Internal, "internal error")
 		}
-		if err := s.repo.SaveToken(refreshToken, user.ID); err != nil {
+		if err := s.Repo.SaveToken(refreshToken, user.ID); err != nil {
 			return "", "", err
 		}
 	} else {
@@ -112,12 +112,12 @@ func (s *AuthService) Login(req *pb.LoginRequest) (string, string, error) {
 }
 
 func (s *AuthService) RefreshToken(req *pb.RefreshRequest) (string, error) {
-	id, err := s.repo.CheckRefreshToken(req.RefreshToken)
+	id, err := s.Repo.CheckRefreshToken(req.RefreshToken)
 	if err != nil {
 		return "", utils2.ErrorHandler(err, "invalid token ")
 	}
 
-	user, err := s.repo.GetUserById(id)
+	user, err := s.Repo.GetUserById(id)
 	if err != nil {
 		return "", status.Error(codes.NotFound, "user not found")
 	}
@@ -135,7 +135,7 @@ func (s *AuthService) UpdatePassword(req *pb.UpdatePasswordRequest) (string, err
 	if err != nil {
 		return "", status.Error(codes.Internal, "internal error")
 	}
-	user, err := s.repo.GetUserById(uid)
+	user, err := s.Repo.GetUserById(uid)
 	if err != nil {
 		return "", status.Error(codes.NotFound, "user not found")
 	}
@@ -149,7 +149,7 @@ func (s *AuthService) UpdatePassword(req *pb.UpdatePasswordRequest) (string, err
 		return "", status.Error(codes.Internal, "failed to hash password")
 	}
 
-	if err := s.repo.UpdatePassword(user.ID, hashed); err != nil {
+	if err := s.Repo.UpdatePassword(user.ID, hashed); err != nil {
 		return "", status.Error(codes.Internal, "failed to update password")
 	}
 
@@ -161,7 +161,7 @@ func (s *AuthService) UpdatePassword(req *pb.UpdatePasswordRequest) (string, err
 }
 
 func (s *AuthService) ForgotPassword(req *pb.ForgotPasswordRequest) error {
-	user, err := s.repo.GetUserByEmail(req.Email)
+	user, err := s.Repo.GetUserByEmail(req.Email)
 	if err != nil {
 		return status.Error(codes.NotFound, "user not found")
 	}
@@ -172,7 +172,7 @@ func (s *AuthService) ForgotPassword(req *pb.ForgotPasswordRequest) error {
 	if err != nil {
 		return status.Error(codes.Internal, "failed to generate reset token")
 	}
-	if err := s.repo.SaveResetToken(user.ID, token); err != nil {
+	if err := s.Repo.SaveResetToken(user.ID, token); err != nil {
 		return status.Error(codes.Internal, "failed to save reset token")
 	}
 
@@ -189,7 +189,7 @@ func (s *AuthService) ForgotPassword(req *pb.ForgotPasswordRequest) error {
 }
 
 func (s *AuthService) ResetPassword(req *pb.ResetPasswordRequest) error {
-	reset, err := s.repo.FindResetToken(req.ResetToken)
+	reset, err := s.Repo.FindResetToken(req.ResetToken)
 	if err != nil {
 		return status.Error(codes.InvalidArgument, "invalid reset token")
 	}
@@ -203,7 +203,7 @@ func (s *AuthService) ResetPassword(req *pb.ResetPasswordRequest) error {
 		return status.Error(codes.Internal, "failed to hash password")
 	}
 
-	if err := s.repo.UpdatePassword(reset.UserID, hashed); err != nil {
+	if err := s.Repo.UpdatePassword(reset.UserID, hashed); err != nil {
 		return status.Error(codes.Internal, "failed to update password")
 	}
 
@@ -212,7 +212,7 @@ func (s *AuthService) ResetPassword(req *pb.ResetPasswordRequest) error {
 }
 
 func (s *AuthService) GetProfile(userID uint) (*model.User, error) {
-	user, err := s.repo.GetUserById(userID)
+	user, err := s.Repo.GetUserById(userID)
 	if err != nil {
 		return nil, status.Error(codes.NotFound, "user not found")
 	}

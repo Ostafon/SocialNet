@@ -1,0 +1,50 @@
+name: Run Go Unit Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: ostafon
+          POSTGRES_PASSWORD: 0000
+          POSTGRES_DB: test
+        options: >-
+          --health-cmd="pg_isready -U ostafon"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..20}; do
+            nc -z localhost 5432 && echo "Postgres is up" && break
+            echo "Waiting for postgres..."
+            sleep 2
+          done
+
+      - name: Set env vars for tests
+        run: |
+          echo "DB_URL=postgres://ostafon:0000@localhost:5432/test?sslmode=disable" >> $GITHUB_ENV
+
+      - name: Run unit tests
+        run: go test ./... -v

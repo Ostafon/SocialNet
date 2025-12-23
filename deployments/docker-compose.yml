@@ -1,7 +1,9 @@
 version: "3.9"
 
 services:
-  # ====================== POSTGRES (Одна общая БД) ======================
+  # ------------------------------------------------------
+  # POSTGRES — единая БД для всех сервисов
+  # ------------------------------------------------------
   postgres:
     image: postgres:15
     container_name: socialnet_postgres
@@ -16,7 +18,9 @@ services:
     networks:
       - socialnet
 
-  # ====================== REDIS ======================
+  # ------------------------------------------------------
+  # REDIS
+  # ------------------------------------------------------
   redis:
     image: redis:7
     container_name: socialnet_redis
@@ -26,18 +30,23 @@ services:
     networks:
       - socialnet
 
-  # ====================== AUTH SERVICE ======================
+  # ------------------------------------------------------
+  # AUTH SERVICE
+  # ------------------------------------------------------
   auth:
-    build: ../services/auth/cmd/auth-service
+    build:
+      context: ../..
+      dockerfile: ../deployments/Dockerfile-go
+      args:
+        SERVICE: "auth"
     container_name: auth_service
     restart: on-failure
     environment:
-      AUTH_BD: postgres://admin:admin@postgres:5432/authdb?sslmode=disable
-      JWT_SECRET: social_net_secret
-      JWT_EXPIRES_IN: 6000s
-      SMTP_HOST: smtp.gmail.com
+      DB_CONN: postgres://admin:admin@postgres:5432/authdb?sslmode=disable
+      JWT_SECRET: socialnet_secret
       SMTP_USER: ${SMTP_USER}
       SMTP_PASS: ${SMTP_PASS}
+      SMTP_HOST: smtp.gmail.com
     depends_on:
       - postgres
     ports:
@@ -45,13 +54,19 @@ services:
     networks:
       - socialnet
 
-  # ====================== USER SERVICE ======================
+  # ------------------------------------------------------
+  # USER SERVICE
+  # ------------------------------------------------------
   user:
-    build: ../services/user/cmd/user-service
+    build:
+      context: ../..
+      dockerfile: deployments/Dockerfile-go
+      args:
+        SERVICE: "user"
     container_name: user_service
     restart: on-failure
     environment:
-      USER_BD: postgres://admin:admin@postgres:5432/userdb?sslmode=disable
+      DB_CONN: postgres://admin:admin@postgres:5432/userdb?sslmode=disable
     depends_on:
       - postgres
     ports:
@@ -59,13 +74,19 @@ services:
     networks:
       - socialnet
 
-  # ====================== POST SERVICE ======================
+  # ------------------------------------------------------
+  # POST SERVICE (использует AWS S3)
+  # ------------------------------------------------------
   post:
-    build: ../services/post/cmd/post-service
+    build:
+      context: ../..
+      dockerfile: deployments/Dockerfile-go
+      args:
+        SERVICE: "post"
     container_name: post_service
     restart: on-failure
     environment:
-      POST_BD: postgres://admin:admin@postgres:5432/postdb?sslmode=disable
+      DB_CONN: postgres://admin:admin@postgres:5432/postdb?sslmode=disable
       AWS_REGION: eu-north-1
       AWS_BUCKET: socialnet-posts
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
@@ -77,13 +98,19 @@ services:
     networks:
       - socialnet
 
-  # ====================== COMMENT SERVICE ======================
+  # ------------------------------------------------------
+  # COMMENT SERVICE
+  # ------------------------------------------------------
   comment:
-    build: ../services/comment/cmd/comment-service
+    build:
+      context: ../..
+      dockerfile: deployments/Dockerfile-go
+      args:
+        SERVICE: "comment"
     container_name: comment_service
     restart: on-failure
     environment:
-      COMMENT_BD: postgres://admin:admin@postgres:5432/commentdb?sslmode=disable
+      DB_CONN: postgres://admin:admin@postgres:5432/commentdb?sslmode=disable
     depends_on:
       - postgres
     ports:
@@ -91,13 +118,19 @@ services:
     networks:
       - socialnet
 
-  # ====================== LIKE SERVICE ======================
+  # ------------------------------------------------------
+  # LIKE SERVICE
+  # ------------------------------------------------------
   like:
-    build: ../services/like/cmd/like-service
+    build:
+      context: ../..
+      dockerfile: deployments/Dockerfile-go
+      args:
+        SERVICE: "like"
     container_name: like_service
     restart: on-failure
     environment:
-      LIKE_BD: postgres://admin:admin@postgres:5432/likedb?sslmode=disable
+      DB_CONN: postgres://admin:admin@postgres:5432/likedb?sslmode=disable
     depends_on:
       - postgres
     ports:
@@ -105,30 +138,41 @@ services:
     networks:
       - socialnet
 
-  # ====================== CHAT SERVICE + GRPC-WEB ======================
+  # ------------------------------------------------------
+  # CHAT SERVICE
+  # ------------------------------------------------------
   chat:
-    build: ../services/chat/cmd/chat-service
+    build:
+      context: ../..
+      dockerfile: deployments/Dockerfile-go
+      args:
+        SERVICE: "chat"
     container_name: chat_service
     restart: on-failure
     environment:
-      CHAT_DB: postgres://admin:admin@postgres:5432/chatdb?sslmode=disable
+      DB_CONN: postgres://admin:admin@postgres:5432/chatdb?sslmode=disable
       REDIS_ADDR: redis:6379
     depends_on:
       - postgres
       - redis
     ports:
       - "50056:50056"
-      - "8082:8082"
     networks:
       - socialnet
 
-  # ====================== NOTIFICATION SERVICE ======================
+  # ------------------------------------------------------
+  # NOTIFICATION SERVICE
+  # ------------------------------------------------------
   notification:
-    build: ../services/notification/cmd/notif-service
+    build:
+      context: ../..
+      dockerfile: deployments/Dockerfile-go
+      args:
+        SERVICE: "notification"
     container_name: notification_service
     restart: on-failure
     environment:
-      NOTIFICATION_DB: postgres://admin:admin@postgres:5432/notificationdb?sslmode=disable
+      DB_CONN: postgres://admin:admin@postgres:5432/notificationdb?sslmode=disable
       REDIS_ADDR: redis:6379
     depends_on:
       - postgres
@@ -138,20 +182,37 @@ services:
     networks:
       - socialnet
 
-  # ====================== SEARCH SERVICE ======================
+  # ------------------------------------------------------
+  # SEARCH SERVICE
+  # ------------------------------------------------------
   search:
-    build: ../services/search/cmd/search-service
+    build:
+      context: ../..
+      dockerfile: deployments/Dockerfile-go
+      args:
+        SERVICE: "search"
     container_name: search_service
     restart: on-failure
     environment:
       USER_SERVICE_ADDR: user:50052
       POST_SERVICE_ADDR: post:50053
+    depends_on:
+      - user
+      - post
+    ports:
+      - "50058:50058"
     networks:
       - socialnet
 
-  # ====================== API GATEWAY ======================
+  # ------------------------------------------------------
+  # API GATEWAY
+  # ------------------------------------------------------
   gateway:
-    build: ../api-gateway
+    build:
+      context: ../..
+      dockerfile: deployments/Dockerfile-go
+      args:
+        SERVICE: "gateway"
     container_name: api_gateway
     restart: on-failure
     depends_on:
@@ -168,15 +229,17 @@ services:
     networks:
       - socialnet
 
-  # ====================== FRONTEND ======================
+  # ------------------------------------------------------
+  # FRONTEND (Next.js/React + nginx)
+  # ------------------------------------------------------
   frontend:
-    build: ../frontend
+    build:
+      context: ../..
+      dockerfile: deployments/Dockerfile-frontend
     container_name: frontend_app
     restart: always
     ports:
-      - "3000:3000"
-    environment:
-      CHOKIDAR_USEPOLLING: "true"
+      - "3000:80"
     networks:
       - socialnet
 
